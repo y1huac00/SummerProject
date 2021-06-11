@@ -10,7 +10,9 @@ from torchvision.transforms import ToTensor
 from torch.utils.data import DataLoader
 from PIL import Image
 import matplotlib.pyplot as plt
-os.environ['KMP_DUPLICATE_LIB_OK']='True'
+
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
+
 
 class CustomImageDataset(Dataset):
     def __init__(self, annotations_file, img_dir, transform=None, target_transform=None):
@@ -24,7 +26,7 @@ class CustomImageDataset(Dataset):
 
     def __getitem__(self, idx):
         img_path = os.path.join(self.img_dir, self.img_labels.iloc[idx, 0])
-        #image = read_image(img_path)
+        # image = read_image(img_path)
         image = Image.open(img_path)
         label = self.img_labels.iloc[idx, 1]
         if self.transform:
@@ -32,7 +34,6 @@ class CustomImageDataset(Dataset):
         if self.target_transform:
             label = self.target_transform(label)
         return image, label
-
 
 
 def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
@@ -50,7 +51,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
             if phase == 'train':
                 model.train()  # Set model to training mode
             else:
-                model.eval()   # Set model to evaluate mode
+                model.eval()  # Set model to evaluate mode
 
             running_loss = 0.0
             running_corrects = 0
@@ -79,8 +80,8 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                 running_loss += loss.item() * inputs.size(0)
                 running_corrects += torch.sum(preds == labels.data)
                 cnt += 1
-                if cnt%1000 == 0:
-                    print('finished ', cnt//1000, ' images')
+                if cnt % 100 == 0:
+                    print('finished ', cnt, ' batches')
             if phase == 'train':
                 scheduler.step()
 
@@ -106,30 +107,30 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
     model.load_state_dict(best_model_wts)
     return model
 
+
 # Load train, test and validation data by phase. Phase = train, val and test. Target = genus and species
-def load_data(phase,target,d_transfroms,batch_size = 16):
-    data_path = './Metadata/'+target+'_'+phase+'.csv'
+def load_data(phase, target, d_transfroms, batch_size=16):
+    data_path = './Metadata/' + target + '_' + phase + '.csv'
     src_path = './Plaindata'
-    data_out = CustomImageDataset(data_path,src_path,d_transfroms)
+    data_out = CustomImageDataset(data_path, src_path, d_transfroms)
     data_size = len(data_out)
     data_loader = DataLoader(data_out, batch_size=batch_size, shuffle=True)
-    return data_loader,data_size
+    return data_loader, data_size
 
 
-
-data_transforms = transforms.Compose([transforms.Resize([256,256]),
-        transforms.CenterCrop([224,224]),
-        transforms.ToTensor(),
-        transforms.Normalize(
-        mean=[0.485, 0.456, 0.406],
-        std=[0.229, 0.224, 0.225])])
-target = 'genus'
+data_transforms = transforms.Compose([transforms.Resize([256, 256]),
+                                      transforms.CenterCrop([224, 224]),
+                                      transforms.ToTensor(),
+                                      transforms.Normalize(
+                                          mean=[0.485, 0.456, 0.406],
+                                          std=[0.229, 0.224, 0.225])])
+target = 'species'
 dataloaders = {}
 dataset_sizes = {}
-batch_size: int = 16
+batch_size: int = 256
 dataloaders['train'], dataset_sizes['train'] = load_data('train', target, data_transforms, batch_size)
 dataloaders['val'], dataset_sizes['val'] = load_data('val', target, data_transforms, batch_size)
-#dataloaders['test'], dataset_sizes['test'] = load_data('test', target, data_transforms, batch_size)
+# dataloaders['test'], dataset_sizes['test'] = load_data('test', target, data_transforms, batch_size)
 
 print(dataset_sizes)
 
@@ -143,10 +144,13 @@ unloader = transforms.ToPILImage()
 image = unloader(img)
 plt.imshow(image)
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+print(device)
 
-model_ft = models.resnet18(pretrained=True)
+model_ft = models.resnet50(pretrained=True)
+for param in model_ft.parameters():
+    param.requires_grad = False
 num_ftrs = model_ft.fc.in_features
-model_ft.fc = torch.nn.Linear(num_ftrs, 15)
+model_ft.fc = torch.nn.Linear(num_ftrs, 31)
 
 model_ft = model_ft.to(device)
 
@@ -159,4 +163,4 @@ optimizer_ft = torch.optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
 exp_lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
 
 model_conv = train_model(model_ft, criterion, optimizer_ft,
-                         exp_lr_scheduler, num_epochs=5)
+                         exp_lr_scheduler, num_epochs=25)
