@@ -157,7 +157,6 @@ def load_data(phase, target, d_transfroms, batch_size=16):
     data_path = './Metadata/' + target + '_' + phase + '.csv'
     src_path = './Plaindata'
     data_out = CustomImageDataset(data_path, src_path, d_transfroms)
-    calculate_norm_value(data_path, src_path)
     data_size = len(data_out)
     data_cal, _ = zip(*data_out)
     data_loader = DataLoader(data_out, batch_size=batch_size, shuffle=True)
@@ -181,7 +180,7 @@ batch_size: int = 16
 #dataloaders['play'], dataset_sizes['play'] = load_data('play', target, data_transforms, batch_size)
 
 dataloaders['val'], dataset_sizes['val'] = load_data('val', target, data_transforms, batch_size)
-# dataloaders['train'], dataset_sizes['train'] = load_data('train', target, data_transforms, batch_size)
+dataloaders['train'], dataset_sizes['train'] = load_data('train', target, data_transforms, batch_size)
 
 # dataloaders['test'], dataset_sizes['test'] = load_data('test', target, data_transforms, batch_size)
 
