@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
+''' Loading data and call training function of model'''
 
 class CustomImageDataset(Dataset):
     def __init__(self, annotations_file, img_dir, transform=None, target_transform=None):
@@ -36,7 +37,7 @@ class CustomImageDataset(Dataset):
             image = self.transform(image)
         if self.target_transform:
             label = self.target_transform(label)
-        return image, label
+        return image, label, img_path
 
 
 def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
@@ -179,8 +180,8 @@ batch_size: int = 16
 
 #dataloaders['play'], dataset_sizes['play'] = load_data('play', target, data_transforms, batch_size)
 
-dataloaders['val'], dataset_sizes['val'] = load_data('val', target, data_transforms, batch_size)
-dataloaders['train'], dataset_sizes['train'] = load_data('train', target, data_transforms, batch_size)
+dataloaders['val'], dataset_sizes['val'], _ = load_data('val', target, data_transforms, batch_size)
+dataloaders['train'], dataset_sizes['train'], _ = load_data('train', target, data_transforms, batch_size)
 
 # dataloaders['test'], dataset_sizes['test'] = load_data('test', target, data_transforms, batch_size)
 
@@ -200,4 +201,5 @@ criterion = torch.nn.CrossEntropyLoss()
 optimizer_ft = torch.optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
 # Decay LR by a factor of 0.1 every 7 epochs
 exp_lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
-# model_conv = train_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler, num_epochs=5)
+model_conv = train_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler, num_epochs=25)
+torch.save(model_ft.state_dict(), 'model_weights.pth')

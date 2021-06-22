@@ -96,7 +96,6 @@ def label_species(in_path, out_path,guide_path,treshold = 20):
     with open(out_path, 'w', encoding='ascii', errors='ignore') as f_out:
         writer = csv.writer(f_out)
         for row in rows:
-
             row_copy = row.copy()
             species = row_copy[1]
             if img_species[species]<=treshold:
