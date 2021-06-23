@@ -30,7 +30,7 @@ def write_splitted_data(X,Y,trg_dir):
     f_out.close()
 
 if __name__ == '__main__':
-    class_target = 'genus'
+    class_target = 'species'
     src_dir = class_target+'.csv'
     train_dir = './Metadata/'+class_target+'_train.csv'
     val_dir = './Metadata/'+class_target+'_val.csv'

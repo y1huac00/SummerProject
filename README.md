@@ -1,4 +1,4 @@
-# SummerProject
+# Automated Taxonomic Identification Framework 
 This is a project developed for identifying species of Ostracods. The project is still under construction. Since the Ostracods are not avaliable currently, photos 
 of forums will be used to test the efficiency of the models.
 
