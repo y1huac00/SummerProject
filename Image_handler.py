@@ -74,8 +74,7 @@ def imageCorpping(im, name, trgDir):
 
 
 def load_images_from_folder(dir):
-    images = []
-    names = []
+    print('Loading Files.')
     for foldername in tqdm(os.listdir(dir)):
         if not foldername.startswith('.'):
             finalFolder = os.path.join(os.path.join(dir, foldername), 'images')
@@ -85,20 +84,13 @@ def load_images_from_folder(dir):
             #     images.append(img)
             #     names.append(filename)
                 imageCorpping(img, filename, trgDir)
-    return (images, names)
 
 
 srcDir = './Data'
 trgDir = './Plaindata'
-print('Loading Files.')
-image, name = load_images_from_folder(srcDir)
+load_images_from_folder(srcDir)
 print('Loading Finished.')
 cnt = 0
-# for i, n in zip(image, name):
-#     imageCorpping(i, n, trgDir)
-#     cnt += 1
-#     if cnt%1000 == 0:
-#         print('Finished ', cnt, ' of 27730 images.')
 print('Possible error images:')
 print(fault)
 

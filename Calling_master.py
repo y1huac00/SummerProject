@@ -11,8 +11,9 @@ from torch.utils.data import DataLoader
 from PIL import Image
 import matplotlib.pyplot as plt
 
-os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
+PATH = './Models/'+str(time.time())+'.pth'
 
 class CustomImageDataset(Dataset):
     def __init__(self, annotations_file, img_dir, transform=None, target_transform=None):
@@ -127,7 +128,7 @@ data_transforms = transforms.Compose([transforms.Resize([256, 256]),
 target = 'species'
 dataloaders = {}
 dataset_sizes = {}
-batch_size: int = 256
+batch_size: int = 64
 dataloaders['train'], dataset_sizes['train'] = load_data('train', target, data_transforms, batch_size)
 dataloaders['val'], dataset_sizes['val'] = load_data('val', target, data_transforms, batch_size)
 # dataloaders['test'], dataset_sizes['test'] = load_data('test', target, data_transforms, batch_size)
@@ -146,7 +147,7 @@ plt.imshow(image)
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print(device)
 
-model_ft = models.resnet50(pretrained=True)
+model_ft = models.resnet152(pretrained=True)
 
 num_ftrs = model_ft.fc.in_features
 model_ft.fc = torch.nn.Linear(num_ftrs, 31)
@@ -157,9 +158,12 @@ criterion = torch.nn.CrossEntropyLoss()
 
 # Observe that all parameters are being optimized
 #optimizer_ft = torch.optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
-optimizer_ft = torch.optim.Adam(model_ft.parameters(), lr=0.001)
+
+'''Need a parameter searching grid'''
+optimizer_ft = torch.optim.ASGD(model_ft.parameters(), lr=0.001,lambd=0.0002)
 # Decay LR by a factor of 0.1 every 7 epochs
 exp_lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer_ft, step_size=5, gamma=0.1)
 
 model_conv = train_model(model_ft, criterion, optimizer_ft,
                          exp_lr_scheduler, num_epochs=25)
+torch.save(model_conv.state_dict(), PATH)
