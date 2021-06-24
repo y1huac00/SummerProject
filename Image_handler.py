@@ -1,6 +1,7 @@
 import numpy as np
 from PIL import Image
 import os
+from tqdm import tqdm
 
 # A list to store possible fault images
 fault = []
@@ -75,14 +76,15 @@ def imageCorpping(im, name, trgDir):
 def load_images_from_folder(dir):
     images = []
     names = []
-    for foldername in os.listdir(dir):
+    for foldername in tqdm(os.listdir(dir)):
         if not foldername.startswith('.'):
             finalFolder = os.path.join(os.path.join(dir, foldername), 'images')
         for filename in os.listdir(finalFolder):
             img = Image.open(os.path.join(finalFolder, filename)).convert('RGB')
             if img is not None:
-                images.append(img)
-                names.append(filename)
+            #     images.append(img)
+            #     names.append(filename)
+                imageCorpping(img, filename, trgDir)
     return (images, names)
 
 
@@ -92,11 +94,12 @@ print('Loading Files.')
 image, name = load_images_from_folder(srcDir)
 print('Loading Finished.')
 cnt = 0
-for i, n in zip(image, name):
-    imageCorpping(i, n, trgDir)
-    cnt += 1
-    if cnt%1000 == 0:
-        print('Finished ', cnt, ' of 27730 images.')
+# for i, n in zip(image, name):
+#     imageCorpping(i, n, trgDir)
+#     cnt += 1
+#     if cnt%1000 == 0:
+#         print('Finished ', cnt, ' of 27730 images.')
+print('Possible error images:')
 print(fault)
 
 # testIMG = './Image_test/730580_ex307653_obj00317.jpg'
