@@ -128,7 +128,7 @@ data_transforms = transforms.Compose([transforms.Resize([256, 256]),
 target = 'species'
 dataloaders = {}
 dataset_sizes = {}
-batch_size: int = 64
+batch_size: int = 240
 dataloaders['train'], dataset_sizes['train'] = load_data('train', target, data_transforms, batch_size)
 dataloaders['val'], dataset_sizes['val'] = load_data('val', target, data_transforms, batch_size)
 # dataloaders['test'], dataset_sizes['test'] = load_data('test', target, data_transforms, batch_size)
@@ -157,10 +157,10 @@ model_ft = model_ft.to(device)
 criterion = torch.nn.CrossEntropyLoss()
 
 # Observe that all parameters are being optimized
-#optimizer_ft = torch.optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
+optimizer_ft = torch.optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
 
 '''Need a parameter searching grid'''
-optimizer_ft = torch.optim.ASGD(model_ft.parameters(), lr=0.001,lambd=0.0002)
+#optimizer_ft = torch.optim.ASGD(model_ft.parameters(), lr=0.001,lambd=0.0002)
 # Decay LR by a factor of 0.1 every 7 epochs
 exp_lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer_ft, step_size=5, gamma=0.1)
 
