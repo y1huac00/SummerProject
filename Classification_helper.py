@@ -4,7 +4,9 @@ import pandas as pd
 import time
 import torch
 import csv
+from torchvision import transforms, models
 
+PATH = './Models/1624584327.542929.pth'
 ''' This is the script for saving model and classification result: '''
 ''' Functions to be implemented:
     1. A validation function to test accuracy on the test dataset
@@ -47,7 +49,13 @@ def verify_model(model, test_loader, device, target, data_size):
                     pred_t = class_dict[prediction]
                     row.append(pred_t)
                     writer.writerow(row)
-        f_guide.close
+        f_guide.close()
     accu = running_corrects.double() / data_size
     print('Current test Acc: {:4f}'.format(accu))
     return accu
+
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+model = models.resnet152(pretrained=True)
+model.load_state_dict(torch.load(PATH))
+
+
