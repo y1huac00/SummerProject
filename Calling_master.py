@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 from ray import tune
 from ray.tune import CLIReporter
 from ray.tune.schedulers import ASHAScheduler
+from Classification_helper import verify_model
 
 config = {
     "lr": tune.loguniform(1e-5, 1e-1),
@@ -25,7 +26,9 @@ config = {
 }
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
+# The path to load model
 PATH = './Models/'+str(time.time())+'.pth'
+MODELPATH = './Models/0.8695_acc.pth'
 
 class CustomImageDataset(Dataset):
     def __init__(self, annotations_file, img_dir, transform=None, target_transform=None):
@@ -46,7 +49,7 @@ class CustomImageDataset(Dataset):
             image = self.transform(image)
         if self.target_transform:
             label = self.target_transform(label)
-        return image, label
+        return image, label, img_path
 
 
 def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
@@ -70,7 +73,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
             running_corrects = 0
 
             # Iterate over data.
-            for inputs, labels in dataloaders[phase]:
+            for inputs, labels, _ in dataloaders[phase]:
                 inputs = inputs.to(device)
                 labels = labels.to(device)
 
@@ -133,7 +136,10 @@ def load_data(phase, target, d_transfroms, batch_size=16):
     data_loader = DataLoader(data_out, batch_size=batch_size, shuffle=True)
     return data_loader, data_size
 
-def std_call(model):
+def std_call(config, model,checkpoint_dir=None, data_dir=None):
+    num_ftrs = model.fc.in_features
+    model.fc = torch.nn.Linear(num_ftrs, 31)
+    model = model.to(device)
     optimizer_ft = torch.optim.SGD(model.parameters(), lr=config["lr"], momentum=config['momentum'])
     exp_lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
     criterion = torch.nn.CrossEntropyLoss()
@@ -151,14 +157,14 @@ data_transforms = transforms.Compose([transforms.Resize([256, 256]),
 target = 'species'
 dataloaders = {}
 dataset_sizes = {}
-batch_size: int = 64
+batch_size: int = 16
 dataloaders['train'], dataset_sizes['train'] = load_data('train', target, data_transforms, batch_size)
 dataloaders['val'], dataset_sizes['val'] = load_data('val', target, data_transforms, batch_size)
-# dataloaders['test'], dataset_sizes['test'] = load_data('test', target, data_transforms, batch_size)
+dataloaders['test'], dataset_sizes['test'] = load_data('test', target, data_transforms, batch_size)
 
 print(dataset_sizes)
 
-train_features, train_labels = next(iter(dataloaders['train']))
+train_features, train_labels, train_path = next(iter(dataloaders['train']))
 print(f"Feature batch shape: {train_features.size()}")
 print(f"Labels batch shape: {train_labels.size()}")
 
@@ -171,11 +177,11 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print(device)
 
 model_ft = models.resnet152(pretrained=True)
-
 num_ftrs = model_ft.fc.in_features
 model_ft.fc = torch.nn.Linear(num_ftrs, 31)
+model_ft.load_state_dict(torch.load(MODELPATH, map_location=torch.device('cpu')))
 
-model_ft = model_ft.to(device)
+verify_model(model_ft, dataloaders['test'], device, target, dataset_sizes['test'])
 
 # Observe that all parameters are being optimized
 #optimizer_ft = torch.optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
@@ -184,10 +190,10 @@ model_ft = model_ft.to(device)
 # Decay LR by a factor of 0.1 every 7 epochs
 #exp_lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer_ft, step_size=5, gamma=0.1)
 
-result = tune.run(
-    partial(std_call,
-    model=model_ft),
-    config=config)
+# result = tune.run(
+#     partial(std_call,
+#     model=model_ft),
+#     config=config)
 
 # model_ft = train_model(model_ft, criterion, optimizer_ft,
 #                          exp_lr_scheduler, num_epochs=25)

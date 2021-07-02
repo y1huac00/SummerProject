@@ -5,15 +5,16 @@ import time
 import torch
 import csv
 from torchvision import transforms, models
+import tqdm
 
-PATH = './Models/1624584327.542929.pth'
+PATH = './Models/0.8695_acc.pth'
+
 ''' This is the script for saving model and classification result: '''
 ''' Functions to be implemented:
     1. A validation function to test accuracy on the test dataset
     2. A recording function to recording the classification result of original files. Outputs (filename,label)
     3. A visualization function to visualize the classification results
 '''
-
 
 # Return a dictionary mapping class string with number label
 def get_class_meaning(target):
@@ -31,7 +32,7 @@ def verify_model(model, test_loader, device, target, data_size):
     class_dict = get_class_meaning(target)
     with torch.no_grad():
         # iterate over batch
-        for images, labels, paths in test_loader:
+        for images, labels, paths in tqdm(test_loader):
             images = images.to(device)
             labels = labels.to(device)
             outputs = model(images)
@@ -44,8 +45,10 @@ def verify_model(model, test_loader, device, target, data_size):
                 writer = csv.writer(f_guide)
                 for label, prediction, path in zip(labels, predictions, paths):
                     row = [path]
+                    label = int(label.numpy())
                     label_t = class_dict[label]
                     row.append(label_t)
+                    prediction = int(prediction.numpy())
                     pred_t = class_dict[prediction]
                     row.append(pred_t)
                     writer.writerow(row)
@@ -54,8 +57,8 @@ def verify_model(model, test_loader, device, target, data_size):
     print('Current test Acc: {:4f}'.format(accu))
     return accu
 
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-model = models.resnet152(pretrained=True)
-model.load_state_dict(torch.load(PATH))
+#device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+#model = models.resnet152(pretrained=True)
+
 
 
