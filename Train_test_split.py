@@ -15,7 +15,10 @@ def read_csv_data(src_dir):
     return file,label
 
 def split_data(X,Y,test_ratio=0.2,val_ratio=0.1):
-    X_p, X_test, Y_p, Y_test = train_test_split(X, Y, test_size=test_ratio, stratify=Y)
+    if test_ratio >0:
+        X_p, X_test, Y_p, Y_test = train_test_split(X, Y, test_size=test_ratio, stratify=Y)
+    else:
+        X_p, Y_p = X,Y
     X_train, X_val, Y_train, Y_val = train_test_split(X_p, Y_p, test_size=val_ratio, stratify=Y_p)
     return X_train,Y_train,X_val,Y_val,X_test,Y_test
 
