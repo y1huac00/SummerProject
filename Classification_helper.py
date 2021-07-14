@@ -119,7 +119,7 @@ def result_visualization():
     return 0
 
 
-plot_prediction('./Results/1625212258species_result.csv')
+#plot_prediction('./Results/1625212258species_result.csv')
 
 # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # model = models.resnet152(pretrained=True)

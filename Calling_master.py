@@ -34,9 +34,20 @@ os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 # The path to load model
 PATH = './Models/'+str(time.time())+'.pth'
 MODELPATH = './Models/0.8695_acc.pth'
+DEFAULTWD = os.getcwd()
 
 class CustomImageDataset(Dataset):
+    """
+    DataLoader class. Sub-class of torch.utils.data Dataset class. It will load data from designated files.
+    """
     def __init__(self, annotations_file, img_dir, transform=None, target_transform=None):
+        """
+        Initial function. Creates the instance.
+        :param annotations_file: The file containing image directory an labels (for train and validation)
+        :param img_dir: The directory containing target images.
+        :param transform: Transformation applied to images. Should be a torchvision.transform type.
+        :param target_transform:
+        """
         self.img_labels = pd.read_csv(annotations_file)
         self.img_dir = img_dir
         self.transform = transform
@@ -46,6 +57,13 @@ class CustomImageDataset(Dataset):
         return len(self.img_labels)
 
     def __getitem__(self, idx):
+        """
+        Controls what returned from data loader
+        :param idx: Index of image.
+        :return: image: The image array.
+        label: label of training images.
+        img_path: path to the image.
+        """
         img_path = os.path.join(self.img_dir, self.img_labels.iloc[idx, 0])
         # image = read_image(img_path)
         image = Image.open(img_path)
@@ -59,7 +77,6 @@ class CustomImageDataset(Dataset):
 
 def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
     since = time.time()
-
     best_model_wts = copy.deepcopy(model.state_dict())
     best_acc = 0.0
 
@@ -141,7 +158,8 @@ def load_data(phase, target, d_transfroms, batch_size=16):
     data_loader = DataLoader(data_out, batch_size=batch_size, shuffle=True)
     return data_loader, data_size
 
-def std_call_train(config, model,checkpoint_dir=None, data_dir=None):
+def std_call_train(config, model, checkpoint_dir=None, data_dir=None):
+    os.chdir(DEFAULTWD)
     num_ftrs = model.fc.in_features
     model.fc = torch.nn.Linear(num_ftrs, 31)
     model = model.to(device)
@@ -151,6 +169,13 @@ def std_call_train(config, model,checkpoint_dir=None, data_dir=None):
     model_ft = train_model(model, criterion, optimizer_ft,
                           exp_lr_scheduler, num_epochs=25)
     return model_ft
+
+def tune_train(config, model, target):
+    num_ftrs = model.fc.in_features
+    model.fc = torch.nn.Linear(num_ftrs, CLASSDICT[target])
+    model = model.to(device)
+
+
 
 def test_model(model, pre_trained_path, data, data_size, device, target):
     num_ftrs = model.fc.in_features
@@ -182,13 +207,14 @@ print(f"Labels batch shape: {train_labels.size()}")
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-model_ft = models.resnet152(pretrained=True)
+model_ft = models.resnet18(pretrained=True)
 # num_ftrs = model_ft.fc.in_features
-# model_ft.fc = torch.nn.Linear(num_ftrs, 31)
+# model_ft.fc = torch.nn.Linear(num_ftrs, CLASSDICT[target])
 # model_ft.load_state_dict(torch.load(MODELPATH, map_location=torch.device(device)))
 #
 # verify_model(model_ft, dataloaders['test'], device, target, dataset_sizes['test'])
-test_model(model_ft, MODELPATH, dataloaders['test'], dataset_sizes['test'], device, target)
+
+#test_model(model_ft, MODELPATH, dataloaders['test'], dataset_sizes['test'], device, target)
 
 # Observe that all parameters are being optimized
 #optimizer_ft = torch.optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
@@ -197,10 +223,9 @@ test_model(model_ft, MODELPATH, dataloaders['test'], dataset_sizes['test'], devi
 # Decay LR by a factor of 0.1 every 7 epochs
 #exp_lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer_ft, step_size=5, gamma=0.1)
 
-# result = tune.run(
-#     partial(std_call,
-#     model=model_ft),
-#     config=config)
-
-# model_ft = train_model(model_ft, criterion, optimizer_ft,
-#                          exp_lr_scheduler, num_epochs=25)
+result = tune.run(
+    partial(std_call_train,
+    model=model_ft),
+    config=config)
+# criterion = torch.nn.CrossEntropyLoss()
+# model_ft = train_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler, num_epochs=25)
