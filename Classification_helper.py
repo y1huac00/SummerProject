@@ -7,6 +7,8 @@ import csv
 from torchvision import transforms, models
 import tqdm
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+from matplotlib import pyplot as plt
+import seaborn as sn
 
 PATH = './Models/0.8695_acc.pth'
 
@@ -26,6 +28,11 @@ def get_class_meaning(target):
     mydict = guide_index[0]
     return mydict
 
+def extract_class_label(target):
+    guideline_path  = target+'_guide.csv'
+    guideline_data = pd.read_csv(guideline_path,header=None)
+    all_classes = guideline_data[0]
+    return all_classes
 
 # Classify image and write the results into
 def verify_model(model, test_loader, device, target, data_size):
@@ -67,9 +74,13 @@ def plot_prediction(test_file):
         if y1==y2:
             accCount+=1
     print(accCount/len(y_pred))
-    cm = confusion_matrix(y_pred,y_real)
-    disp = ConfusionMatrixDisplay(confusion_matrix=cm)
-    return disp.plot()
+    classes = extract_class_label('species')
+    cm = confusion_matrix(y_pred, y_real)
+    df_cm = pd.DataFrame(cm, index=classes,
+                         columns=classes)
+    plt.figure(figsize=(14,8))
+    sn.heatmap(df_cm, annot=True)
+    plt.show()
 plot_prediction('./Results/1625212258species_result.csv')
 #device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 #model = models.resnet152(pretrained=True)

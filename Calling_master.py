@@ -25,6 +25,11 @@ config = {
     "momentum":tune.grid_search([0.5,0.6,0.7,0.8,0.9])
 }
 
+CLASSDICT = {
+    'species': 31,
+    'genues': 16
+}
+
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 # The path to load model
 PATH = './Models/'+str(time.time())+'.pth'
@@ -136,7 +141,7 @@ def load_data(phase, target, d_transfroms, batch_size=16):
     data_loader = DataLoader(data_out, batch_size=batch_size, shuffle=True)
     return data_loader, data_size
 
-def std_call(config, model,checkpoint_dir=None, data_dir=None):
+def std_call_train(config, model,checkpoint_dir=None, data_dir=None):
     num_ftrs = model.fc.in_features
     model.fc = torch.nn.Linear(num_ftrs, 31)
     model = model.to(device)
@@ -146,6 +151,13 @@ def std_call(config, model,checkpoint_dir=None, data_dir=None):
     model_ft = train_model(model, criterion, optimizer_ft,
                           exp_lr_scheduler, num_epochs=25)
     return model_ft
+
+def test_model(model, pre_trained_path, data, data_size, device, target):
+    num_ftrs = model.fc.in_features
+    model.fc = torch.nn.Linear(num_ftrs, CLASSDICT[target])
+    model.load_state_dict(torch.load(pre_trained_path, map_location=torch.device(device)))
+
+    verify_model(model, data, device, target, data_size)
 
 
 data_transforms = transforms.Compose([transforms.Resize([256, 256]),
@@ -168,20 +180,15 @@ train_features, train_labels, train_path = next(iter(dataloaders['train']))
 print(f"Feature batch shape: {train_features.size()}")
 print(f"Labels batch shape: {train_labels.size()}")
 
-img = train_features[0].squeeze()
-label = train_labels[0]
-unloader = transforms.ToPILImage()
-image = unloader(img)
-plt.imshow(image)
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-print(device)
 
 model_ft = models.resnet152(pretrained=True)
-num_ftrs = model_ft.fc.in_features
-model_ft.fc = torch.nn.Linear(num_ftrs, 31)
-model_ft.load_state_dict(torch.load(MODELPATH, map_location=torch.device('cpu')))
-
-verify_model(model_ft, dataloaders['test'], device, target, dataset_sizes['test'])
+# num_ftrs = model_ft.fc.in_features
+# model_ft.fc = torch.nn.Linear(num_ftrs, 31)
+# model_ft.load_state_dict(torch.load(MODELPATH, map_location=torch.device(device)))
+#
+# verify_model(model_ft, dataloaders['test'], device, target, dataset_sizes['test'])
+test_model(model_ft, MODELPATH, dataloaders['test'], dataset_sizes['test'], device, target)
 
 # Observe that all parameters are being optimized
 #optimizer_ft = torch.optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
