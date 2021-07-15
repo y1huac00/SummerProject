@@ -122,9 +122,9 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                     best_model_wts = copy.deepcopy(model.state_dict())
 
         timelist.append(time.time()-epochsince)
-        print(f'Time for epoch {epoch}: {(timelist[-1] // 60):.0f}m {timelist[-1] % 60:.0f}s.')
+        print(f'Time for epoch {epoch}: {(timelist[-1] // 60):.0f}m {(timelist[-1] % 60):.0f}s.')
         remainingtime = (num_epochs-epoch-1)*(sum(timelist)/len(timelist))
-        print(f'Estimated remaining time: {(remainingtime // 60):.0f}m {remainingtime % 60:.0f}s.')
+        print(f'Estimated remaining time: {(remainingtime // 60):.0f}m {(remainingtime % 60):.0f}s.')
 
 
 
