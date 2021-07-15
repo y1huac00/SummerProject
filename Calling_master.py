@@ -4,6 +4,7 @@ import torch
 import time
 import copy
 import numpy as np
+import tqdm
 from functools import partial
 from torchvision.io import read_image
 from torch.utils.data import Dataset
@@ -32,7 +33,7 @@ CLASSDICT = {
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 # The path to load model
-PATH = './Models/'+str(time.time())+'.pth'
+PATH = './Models/'
 MODELPATH = './Models/0.8695_acc.pth'
 DEFAULTWD = os.getcwd()
 
@@ -117,9 +118,6 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                 # statistics
                 running_loss += loss.item() * inputs.size(0)
                 running_corrects += torch.sum(preds == labels.data)
-                cnt += 1
-                if cnt % 100 == 0:
-                    print('finished ', cnt, ' batches')
             if phase == 'train':
                 scheduler.step()
 
@@ -144,8 +142,10 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
     print('Best val Acc: {:4f}'.format(best_acc))
 
     # load best model weights
-    model.load_state_dict(best_model_wts)
-    torch.save(model.state_dict(), PATH)
+    if best_acc >= 0.75:
+        model.load_state_dict(best_model_wts)
+        model_save_path = PATH+str(time.time())+'_'+str(best_acc)+'.pth'
+        torch.save(model.state_dict(), model_save_path)
     return model
 
 
@@ -163,6 +163,9 @@ def std_call_train(config, model, checkpoint_dir=None, data_dir=None):
     num_ftrs = model.fc.in_features
     model.fc = torch.nn.Linear(num_ftrs, 31)
     model = model.to(device)
+    batch_size = config['batch_size']
+    dataloaders['train'], dataset_sizes['train'] = load_data('train', target, data_transforms, batch_size)
+    dataloaders['val'], dataset_sizes['val'] = load_data('val', target, data_transforms, batch_size)
     optimizer_ft = torch.optim.SGD(model.parameters(), lr=config["lr"], momentum=config['momentum'])
     exp_lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
     criterion = torch.nn.CrossEntropyLoss()
@@ -194,16 +197,16 @@ data_transforms = transforms.Compose([transforms.Resize([256, 256]),
 target = 'species'
 dataloaders = {}
 dataset_sizes = {}
-batch_size: int = 16
-dataloaders['train'], dataset_sizes['train'] = load_data('train', target, data_transforms, batch_size)
-dataloaders['val'], dataset_sizes['val'] = load_data('val', target, data_transforms, batch_size)
-dataloaders['test'], dataset_sizes['test'] = load_data('test', target, data_transforms, batch_size)
-
-print(dataset_sizes)
-
-train_features, train_labels, train_path = next(iter(dataloaders['train']))
-print(f"Feature batch shape: {train_features.size()}")
-print(f"Labels batch shape: {train_labels.size()}")
+# batch_size: int = 16
+# dataloaders['train'], dataset_sizes['train'] = load_data('train', target, data_transforms, batch_size)
+# dataloaders['val'], dataset_sizes['val'] = load_data('val', target, data_transforms, batch_size)
+# dataloaders['test'], dataset_sizes['test'] = load_data('test', target, data_transforms, batch_size)
+#
+# print(dataset_sizes)
+#
+# train_features, train_labels, train_path = next(iter(dataloaders['train']))
+# print(f"Feature batch shape: {train_features.size()}")
+# print(f"Labels batch shape: {train_labels.size()}")
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -226,6 +229,7 @@ model_ft = models.resnet18(pretrained=True)
 result = tune.run(
     partial(std_call_train,
     model=model_ft),
+    resources_per_trial={"cpu": 20, "gpu": 1},
     config=config)
 # criterion = torch.nn.CrossEntropyLoss()
 # model_ft = train_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler, num_epochs=25)
