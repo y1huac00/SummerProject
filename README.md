@@ -25,11 +25,8 @@ Name the file Data.zip and un-zip it directly, you will get all images under str
 Models:
 
 -Species:
-
---Resnet152 test accuracy 91%: https://connecthkuhk-my.sharepoint.com/:u:/g/personal/yihuac_connect_hku_hk/ETzF8jD3d6RDo_Cot215fuoBfT1JVAD3ZoUwchDhobvLTw?e=4R0tRa
-
---vgg16 val & test accuracy 88%: https://drive.google.com/file/d/1fntYLBz5-c94LbWyZ-Dv4hTSLA20EUdP/view?usp=sharing
+- Resnet152 test accuracy 91%: https://connecthkuhk-my.sharepoint.com/:u:/g/personal/yihuac_connect_hku_hk/ETzF8jD3d6RDo_Cot215fuoBfT1JVAD3ZoUwchDhobvLTw?e=4R0tRa
+- vgg16 val & test accuracy 88%: https://drive.google.com/file/d/1fntYLBz5-c94LbWyZ-Dv4hTSLA20EUdP/view?usp=sharing
 
 -Genus:
-
---vgg16 val accuracy 93.14%, test accuracy 93.36%: https://drive.google.com/file/d/1SIyBLgVx6VGCuhUhGOqcRJ0-nOmB7tYb/view?usp=sharing
+- vgg16 val accuracy 93.14%, test accuracy 93.36%: https://drive.google.com/file/d/1SIyBLgVx6VGCuhUhGOqcRJ0-nOmB7tYb/view?usp=sharing
