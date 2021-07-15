@@ -4,7 +4,6 @@ import torch
 import time
 import copy
 import numpy as np
-import tqdm
 from functools import partial
 from torchvision.io import read_image
 from torch.utils.data import Dataset
@@ -16,7 +15,6 @@ import matplotlib.pyplot as plt
 from ray import tune
 from ray.tune import CLIReporter
 from ray.tune.schedulers import ASHAScheduler
-from Classification_helper import verify_model
 
 config = {
     "lr": tune.loguniform(1e-5, 1e-1),
@@ -24,11 +22,6 @@ config = {
     "step_size": tune.uniform(3,8),
     "gamma":tune.grid_search([0.01,0.05,0.1,0.2,0.5]),
     "momentum":tune.grid_search([0.5,0.6,0.7,0.8,0.9])
-}
-
-CLASSDICT = {
-    'species': 31,
-    'genues': 16
 }
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
@@ -187,7 +180,6 @@ def test_model(model, pre_trained_path, data, data_size, device, target):
 
     verify_model(model, data, device, target, data_size)
 
-
 data_transforms = transforms.Compose([transforms.Resize([256, 256]),
                                       transforms.CenterCrop([224, 224]),
                                       transforms.ToTensor(),
@@ -218,6 +210,7 @@ model_ft = models.resnet18(pretrained=True)
 # verify_model(model_ft, dataloaders['test'], device, target, dataset_sizes['test'])
 
 #test_model(model_ft, MODELPATH, dataloaders['test'], dataset_sizes['test'], device, target)
+
 
 # Observe that all parameters are being optimized
 #optimizer_ft = torch.optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
