@@ -21,3 +21,6 @@ Name the file Data.zip and un-zip it directly, you will get all images under str
 * genus.csv: a file containing image names and numbered genus classses. It is the output from metadata_helper.py.
 * genus_guide.csv: a file mapping numbers to genus. It is the output from metadata_helper.py.
 * genus_train.csv: a file showing the train-test split results. It is the output from train_test_split.csv
+
+## Pre-trained model
+Resnet 152 with 86.95% top 1 validation accurancy: https://1drv.ms/u/s!Avhb6zEgsVg1naFz-XupQWBVyNt2yQ?e=KwnKv7
