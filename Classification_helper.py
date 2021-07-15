@@ -12,6 +12,7 @@ import seaborn as sn
 
 PATH = './Models/0.8695_acc.pth'
 
+PATH = './Models/1624584327.542929.pth'
 ''' This is the script for saving model and classification result: '''
 ''' Functions to be implemented:
     1. A validation function to test accuracy on the test dataset
