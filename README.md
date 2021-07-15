@@ -24,6 +24,7 @@ Name the file Data.zip and un-zip it directly, you will get all images under str
 
 ## Pre-trained model
 Resnet 152 with 86.95% top 1 validation accurancy: https://1drv.ms/u/s!Avhb6zEgsVg1naFz-XupQWBVyNt2yQ?e=KwnKv7
+
 |pretrained model|class|train accuracy|val accuracy|test acccuracy|n_epochs|criterion|optimizer|learning rate|momentum|scheduler|step size|gamma|link|
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 |resnet152|species|/|/|91%|25|CrossEntropyLoss|SGD|0.001|0.9|StepLR|5|0.1|https://connecthkuhk-my.sharepoint.com/:u:/g/personal/yihuac_connect_hku_hk/ETzF8jD3d6RDo_Cot215fuoBfT1JVAD3ZoUwchDhobvLTw?e=4R0tRa|
