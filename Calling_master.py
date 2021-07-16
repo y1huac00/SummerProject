@@ -173,6 +173,17 @@ def std_call_train(config, model, checkpoint_dir=None, data_dir=None):
                           exp_lr_scheduler, num_epochs=25)
     return model_ft
 
+def single_train(model, target, batch_size, n_epochs, criterion, optimizer, scheduler):
+    os.chdir(DEFAULTWD)
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    model = model.to(device)
+    dataloaders['train'], dataset_sizes['train'] = load_data('train', target, data_transforms, batch_size)
+    dataloaders['val'], dataset_sizes['val'] = load_data('val', target, data_transforms, batch_size)
+    model_ft = train_model(model=model, criterion=criterion, optimizer=optimizer,
+                          scheduler=scheduler, num_epochs=n_epochs)
+    return model_ft
+
+
 def tune_train(config, model, target):
     num_ftrs = model.fc.in_features
     model.fc = torch.nn.Linear(num_ftrs, CLASSDICT[target])
