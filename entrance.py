@@ -18,7 +18,6 @@ if len(arg) == 2:
         print(str(config))
     elif arg[0] == 'tune' and arg[1] == 'm':
         print('make changes')
-
 elif len(arg) == 14:
     modeldict = dict(zip(l,arg))
     input = input(str(modeldict)[1:-1].replace('\'','').replace(', ','\n') +
