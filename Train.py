@@ -26,6 +26,13 @@ config = {
     "momentum":tune.grid_search([0.5,0.6,0.7,0.8,0.9])
 }
 
+data_transforms = transforms.Compose([transforms.Resize([256, 256]),
+                                      transforms.CenterCrop([224, 224]),
+                                      transforms.ToTensor(),
+                                      transforms.Normalize(
+                                          mean=[0.485, 0.456, 0.406],
+                                          std=[0.229, 0.224, 0.225])])
+
 CLASSDICT = {
     'species': 31,
     'genues': 16
@@ -76,13 +83,16 @@ class CustomImageDataset(Dataset):
         return image, label, img_path
 
 
-def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
+def train_model(model, criterion, optimizer, scheduler, num_epochs, dataloaders, dataset_sizes, device):
     since = time.time()
     best_model_wts = copy.deepcopy(model.state_dict())
     best_acc = 0.0
-
-    for epoch in range(num_epochs):
-        print('Epoch {}/{}'.format(epoch, num_epochs - 1))
+    trainloss = []
+    valloss = []
+    timelist=[]
+    for epoch in range(1,num_epochs+1):
+        epochsince = time.time()
+        print('Epoch {}/{}'.format(epoch, num_epochs))
         print('-' * 10)
         cnt = 0
         # Each epoch has a training and validation phase
@@ -118,23 +128,41 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                 # statistics
                 running_loss += loss.item() * inputs.size(0)
                 running_corrects += torch.sum(preds == labels.data)
+                cnt += 1
+                if cnt % 100 == 0:
+                    print('finished ', cnt, ' batches')
             if phase == 'train':
                 scheduler.step()
 
             epoch_loss = running_loss / dataset_sizes[phase]
             epoch_acc = running_corrects.double() / dataset_sizes[phase]
+            if phase == 'train':
+                trainloss.append(epoch_loss)
+            else:
+                valloss.append(epoch_loss)
 
             print('{} Loss: {:.4f} Acc: {:.4f}'.format(
                 phase, epoch_loss, epoch_acc))
 
             # deep copy the model
             if phase == 'val':
-                tune.report(loss=epoch_loss, accuracy=epoch_acc)
+                # tune.report(loss=epoch_loss, accuracy=epoch_acc)
                 if epoch_acc > best_acc:
                     best_acc = epoch_acc
                     best_model_wts = copy.deepcopy(model.state_dict())
 
-        print()
+        if epoch > 3:
+            if (trainloss[-3] < trainloss[-2] < trainloss[-1]) and (valloss[-3] < valloss[-2] < valloss[-1]):
+                print('Train loss has increased over 3 epochs. Break.')
+                break
+
+        timelist.append(time.time()-epochsince)
+        print(f'Time for epoch {epoch}: {(timelist[-1] // 60):.0f}m {(timelist[-1] % 60):.0f}s.')
+        remainingtime = (num_epochs-epoch)*(sum(timelist)/len(timelist))
+        print(f'Estimated remaining time: {(remainingtime // 60):.0f}m {(remainingtime % 60):.0f}s.')
+        finishingtime = time.localtime(time.time()+remainingtime)
+        print(f'Estimated finishing time: {finishingtime.tm_year}/{finishingtime.tm_mon}/{finishingtime.tm_mday} {finishingtime.tm_hour}:{finishingtime.tm_min}')
+
 
     time_elapsed = time.time() - since
     print('Training complete in {:.0f}m {:.0f}s'.format(
@@ -158,14 +186,17 @@ def load_data(phase, target, d_transfroms, batch_size=16):
     data_loader = DataLoader(data_out, batch_size=batch_size, shuffle=True)
     return data_loader, data_size
 
+"""----------------------------------to be modified----------------------------------"""
 def std_call_train(config, model, checkpoint_dir=None, data_dir=None):
     os.chdir(DEFAULTWD)
     num_ftrs = model.fc.in_features
     model.fc = torch.nn.Linear(num_ftrs, 31)
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = model.to(device)
     batch_size = config['batch_size']
-    dataloaders['train'], dataset_sizes['train'] = load_data('train', target, data_transforms, batch_size)
-    dataloaders['val'], dataset_sizes['val'] = load_data('val', target, data_transforms, batch_size)
+    dataloaders, dataset_sizes = [{},{}]
+    dataloaders['train'], dataset_sizes['train'] = load_data('train', target='species', d_transfroms=data_transforms, batch_size=15)
+    dataloaders['val'], dataset_sizes['val'] = load_data('val', target='species', d_transfroms=data_transforms, batch_size=15)
     optimizer_ft = torch.optim.SGD(model.parameters(), lr=config["lr"], momentum=config['momentum'])
     exp_lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
     criterion = torch.nn.CrossEntropyLoss()
@@ -177,16 +208,18 @@ def single_train(model, target, batch_size, n_epochs, criterion, optimizer, sche
     os.chdir(DEFAULTWD)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = model.to(device)
+    dataloaders, dataset_sizes = [{}, {}]
     dataloaders['train'], dataset_sizes['train'] = load_data('train', target, data_transforms, batch_size)
     dataloaders['val'], dataset_sizes['val'] = load_data('val', target, data_transforms, batch_size)
     model_ft = train_model(model=model, criterion=criterion, optimizer=optimizer,
-                          scheduler=scheduler, num_epochs=n_epochs)
+                          scheduler=scheduler, num_epochs=n_epochs, dataloaders=dataloaders, dataset_sizes=dataset_sizes, device=device)
     return model_ft
 
 
 def tune_train(config, model, target):
     num_ftrs = model.fc.in_features
     model.fc = torch.nn.Linear(num_ftrs, CLASSDICT[target])
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = model.to(device)
 
 
@@ -198,49 +231,3 @@ def test_model(model, pre_trained_path, data, data_size, device, target):
 
     verify_model(model, data, device, target, data_size)
 
-
-data_transforms = transforms.Compose([transforms.Resize([256, 256]),
-                                      transforms.CenterCrop([224, 224]),
-                                      transforms.ToTensor(),
-                                      transforms.Normalize(
-                                          mean=[0.485, 0.456, 0.406],
-                                          std=[0.229, 0.224, 0.225])])
-target = 'species'
-dataloaders = {}
-dataset_sizes = {}
-# batch_size: int = 16
-# dataloaders['train'], dataset_sizes['train'] = load_data('train', target, data_transforms, batch_size)
-# dataloaders['val'], dataset_sizes['val'] = load_data('val', target, data_transforms, batch_size)
-# dataloaders['test'], dataset_sizes['test'] = load_data('test', target, data_transforms, batch_size)
-#
-# print(dataset_sizes)
-#
-# train_features, train_labels, train_path = next(iter(dataloaders['train']))
-# print(f"Feature batch shape: {train_features.size()}")
-# print(f"Labels batch shape: {train_labels.size()}")
-
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
-model_ft = models.resnet18(pretrained=True)
-# num_ftrs = model_ft.fc.in_features
-# model_ft.fc = torch.nn.Linear(num_ftrs, CLASSDICT[target])
-# model_ft.load_state_dict(torch.load(MODELPATH, map_location=torch.device(device)))
-#
-# verify_model(model_ft, dataloaders['test'], device, target, dataset_sizes['test'])
-
-#test_model(model_ft, MODELPATH, dataloaders['test'], dataset_sizes['test'], device, target)
-
-# Observe that all parameters are being optimized
-#optimizer_ft = torch.optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
-'''Need a parameter searching grid'''
-#optimizer_ft = torch.optim.ASGD(model_ft.parameters(), lr=0.001,lambd=0.0002)
-# Decay LR by a factor of 0.1 every 7 epochs
-#exp_lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer_ft, step_size=5, gamma=0.1)
-
-result = tune.run(
-    partial(std_call_train,
-    model=model_ft),
-    resources_per_trial={"cpu": 20, "gpu": 1},
-    config=config)
-# criterion = torch.nn.CrossEntropyLoss()
-# model_ft = train_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler, num_epochs=25)
