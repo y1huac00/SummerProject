@@ -1,5 +1,6 @@
 import sys
 import torch
+import argparse
 from torchvision import models
 from Train import std_call_train
 from Train import single_train
@@ -8,6 +9,23 @@ from Train import config
 This is an entrance for receiving terminal command lines and 
 calling training functions according to specified model and hyper-parameters.
 """
+
+parser = argparse.ArgumentParser(description='for training')
+parser.add_argument('-m', '--model', default='resnet152', help='Currently supported model: resnet18, resnet34, resnet50, resnet101, resnet152, vgg16')
+parser.add_argument('--target', default='genus', help='genus / species')
+parser.add_argument('-nc','--nclasses', default=15, type=int, help='number of classes')
+parser.add_argument('--phase', default='train', help='train / test')
+parser.add_argument('--pretrained', default=1, type=int, help='1: pretrained\n2: not pretrained')
+parser.add_argument('--batch_size', default=16, type=int, help='batch size')
+parser.add_argument('--n_epochs', default=20, type=int, help='number of epochs')
+parser.add_argument('--criterion', default='cel', help='Supported criterions: cel (cross entropy loss)')
+parser.add_argument('--optimizer',default='sgd', help='Supported optimizers: sgd (stochastic gradient descent)')
+parser.add_argument('--lr', default=0.0001, type=float, help='Learning rate')
+parser.add_argument('--momentum', default=0.9, type=float, help='Momentum')
+parser.add_argument('--scheduler', default='steplr', help='Supported schedulers: steplr')
+parser.add_argument('--step_size', default=5, type=int, help='Step size, after {step_size} epochs, update learning rate as lr * gamma')
+parser.add_argument('--gamma', default=0.5, type=float, help='Gamma, after {step_size} epochs, update learning rate as lr * gamma')
+args = parser.parse_args()
 
 arg = sys.argv[1:]
 l = ['model','target','n_class','phase','pretrained','batch_size','n_epochs','criterion','optimizer','learning_rate',
@@ -53,10 +71,12 @@ elif len(arg) == 14:
         """-----------------------------------load optimizer------------------------------------"""
         if modeldict['optimizer'] == 'sgd':
             try:
-                optimizer = torch.optim.SGD(params=model.parameters(), lr=float(modeldict['learning_rate']), momentum=float(modeldict['momentum']))
+                optimizer = torch.optim.SGD(params=model.parameters(), lr=float(modeldict['learning_rate']),
+                                            momentum=float(modeldict['momentum']))
             except Exception as e:
                 print(str(e))
-                exit('Please check if learning_rate and momentum have been entered correctly. Command \'python entrance.py help\' for information.')
+                exit('Please check if learning_rate and momentum have been entered correctly. '
+                     'Command \'python entrance.py help\' for information.')
         else:
             exit(modeldict['optimizer'] + ' is not supported yet. Command \'python entrance.py help\' for information.')
         print(modeldict['optimizer'] + ' has been loaded.')
