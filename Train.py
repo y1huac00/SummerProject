@@ -13,10 +13,12 @@ from torchvision.transforms import ToTensor
 from torch.utils.data import DataLoader
 from PIL import Image
 import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
 from ray import tune
 from ray.tune import CLIReporter
 from ray.tune.schedulers import ASHAScheduler
 from Classification_helper import verify_model
+import pandas as pd
 
 config = {
     "lr": tune.loguniform(1e-5, 1e-1),
@@ -35,7 +37,7 @@ data_transforms = transforms.Compose([transforms.Resize([256, 256]),
 
 CLASSDICT = {
     'species': 31,
-    'genues': 16
+    'genus': 15
 }
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
@@ -178,7 +180,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs, dataloaders,
 
 
 # Load train, test and validation data by phase. Phase = train, val and test. Target = genus and species
-def load_data(phase, target, d_transfroms, batch_size=16):
+def load_data(phase, target, d_transfroms=data_transforms, batch_size=16):
     data_path = './Metadata/' + target + '_' + phase + '.csv'
     src_path = './Plaindata'
     data_out = CustomImageDataset(data_path, src_path, d_transfroms)
@@ -227,7 +229,25 @@ def tune_train(config, model, target):
 def test_model(model, pre_trained_path, data, data_size, device, target):
     num_ftrs = model.fc.in_features
     model.fc = torch.nn.Linear(num_ftrs, CLASSDICT[target])
-    model.load_state_dict(torch.load(pre_trained_path, map_location=torch.device(device)))
-
+    model.load_state_dict(torch.load(pre_trained_path))
+    model.to(device)
+    model.eval()
     verify_model(model, data, device, target, data_size)
+
+def view_error(path):
+    df = pd.read_csv(path)
+    errorlist = list(df.path)
+    rows = round(len(errorlist) / 4)
+    cols = 4
+    fig = plt.figure(figsize=(7,7))
+    for i, t in enumerate(errorlist):
+        img = mpimg.imread(t)
+        fig.add_subplot(rows,cols,i+1)
+        plt.imshow(img)
+
+    plt.show()
+
+# data_loader, _ = load_data('test','genus',data_transforms,15)
+# accu = test_model(model=models.resnet152(pretrained=True), pre_trained_path='./Models/resnet152 1626338180.8582935.pth', data=data_loader, data_size=2770, device='cuda', target='genus')
+# print(accu)
 
