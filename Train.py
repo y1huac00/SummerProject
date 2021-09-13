@@ -87,8 +87,9 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs, dataloaders,
     since = time.time()
     best_model_wts = copy.deepcopy(model.state_dict())
     best_acc = 0.0
-    trainloss = []
-    valloss = []
+    best_loss = float('inf')
+    # Sluggish factor is indicating how many rounds the loss doesn't improved
+    sluggish = 0
     timelist=[]
     for epoch in range(1,num_epochs+1):
         epochsince = time.time()
@@ -136,10 +137,13 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs, dataloaders,
 
             epoch_loss = running_loss / dataset_sizes[phase]
             epoch_acc = running_corrects.double() / dataset_sizes[phase]
-            if phase == 'train':
-                trainloss.append(epoch_loss)
-            else:
-                valloss.append(epoch_loss)
+            if epoch_loss < best_loss:
+                best_loss = epoch_loss
+                sluggish = 0
+            # if phase == 'train':
+            #     trainloss.append(epoch_loss)
+            # else:
+            #     valloss.append(epoch_loss)
 
             print('{} Loss: {:.4f} Acc: {:.4f}'.format(
                 phase, epoch_loss, epoch_acc))
@@ -150,11 +154,14 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs, dataloaders,
                 if epoch_acc > best_acc:
                     best_acc = epoch_acc
                     best_model_wts = copy.deepcopy(model.state_dict())
-
-        if epoch > 3:
-            if (trainloss[-3] < trainloss[-2] < trainloss[-1]) and (valloss[-3] < valloss[-2] < valloss[-1]):
-                print('Train loss has increased over 3 epochs. Break.')
-                break
+        # To be modified. Train doesn't improve for three rounds means that the best loss is not reduced for three rounds.
+        # if epoch > 3:
+        #     if (trainloss[-3] < trainloss[-2] < trainloss[-1]) and (valloss[-3] < valloss[-2] < valloss[-1]):
+        #         print('Train loss has increased over 3 epochs. Break.')
+        #         break
+        if sluggish >= 3:
+            print('Train loss has increased over 3 epochs. Break.')
+            break
 
         timelist.append(time.time()-epochsince)
         print(f'Time for epoch {epoch}: {(timelist[-1] // 60):.0f}m {(timelist[-1] % 60):.0f}s.')

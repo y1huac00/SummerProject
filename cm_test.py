@@ -12,6 +12,7 @@ from torchvision.transforms import ToTensor
 from torch.utils.data import DataLoader
 from PIL import Image
 import matplotlib.pyplot as plt
+
 # from ray import tune
 # from ray.tune import CLIReporter
 # from ray.tune.schedulers import ASHAScheduler
@@ -25,7 +26,8 @@ import matplotlib.pyplot as plt
 # }
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
-PATH = './Models/'+str(time.time())+'.pth'
+PATH = './Models/' + str(time.time()) + '.pth'
+
 
 class CustomImageDataset(Dataset):
     def __init__(self, annotations_file, img_dir, transform=None, target_transform=None):
@@ -51,12 +53,12 @@ class CustomImageDataset(Dataset):
 
 def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
     since = time.time()
-    timelist=[]
+    timelist = []
     best_model_wts = copy.deepcopy(model.state_dict())
     best_acc = 0.0
     trainloss = []
     valloss = []
-    for epoch in range(1,num_epochs+1):
+    for epoch in range(1, num_epochs + 1):
         epochsince = time.time()
         print('Epoch {}/{}'.format(epoch, num_epochs - 1))
         print('-' * 10)
@@ -121,14 +123,13 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                 print('Train loss has increased over 3 epochs. Break.')
                 break
 
-        timelist.append(time.time()-epochsince)
+        timelist.append(time.time() - epochsince)
         print(f'Time for epoch {epoch}: {(timelist[-1] // 60):.0f}m {(timelist[-1] % 60):.0f}s.')
-        remainingtime = (num_epochs-epoch)*(sum(timelist)/len(timelist))
+        remainingtime = (num_epochs - epoch) * (sum(timelist) / len(timelist))
         print(f'Estimated remaining time: {(remainingtime // 60):.0f}m {(remainingtime % 60):.0f}s.')
-        finishingtime = time.localtime(time.time()+remainingtime)
-        print(f'Estimated finishing time: {finishingtime.tm_year}/{finishingtime.tm_mon}/{finishingtime.tm_mday} {finishingtime.tm_hour}:{finishingtime.tm_min}')
-
-
+        finishingtime = time.localtime(time.time() + remainingtime)
+        print(
+            f'Estimated finishing time: {finishingtime.tm_year}/{finishingtime.tm_mon}/{finishingtime.tm_mday} {finishingtime.tm_hour}:{finishingtime.tm_min}')
 
     time_elapsed = time.time() - since
     print('Training complete in {:.0f}m {:.0f}s'.format(
@@ -150,6 +151,7 @@ def load_data(phase, target, d_transfroms, batch_size=16):
     data_loader = DataLoader(data_out, batch_size=batch_size, shuffle=True)
     return data_loader, data_size
 
+
 # def std_call(model):
 #     optimizer_ft = torch.optim.SGD(model.parameters(), lr=config["lr"], momentum=config['momentum'])
 #     exp_lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
@@ -167,12 +169,13 @@ def testmodel(model):
             labels = labels.to(device)
             outputs = model(images)
 
-            _,predictions = torch.max(outputs,1)
+            _, predictions = torch.max(outputs, 1)
             n_samples += labels.shape[0]
             n_correct += (predictions == labels).sum().item()
             print(f'complete test {n_samples}')
         acc = 100.0 * n_correct / n_samples
         print(f'accuracy = {acc}')
+
 
 data_transforms = transforms.Compose([transforms.Resize([256, 256]),
                                       transforms.CenterCrop([224, 224]),
@@ -189,9 +192,6 @@ dataloaders['val'], dataset_sizes['val'] = load_data('val', target, data_transfo
 dataloaders['test'], dataset_sizes['test'] = load_data('test', target, data_transforms, batch_size)
 dataiter = iter(dataloaders['train'])
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-
-
 
 train_features, train_labels = next(iter(dataloaders['train']))
 print(f"Feature batch shape: {train_features.size()}")
@@ -219,9 +219,9 @@ optimizer_ft = torch.optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
 exp_lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer_ft, step_size=5, gamma=0.5)
 criterion = torch.nn.CrossEntropyLoss()
 model_ft = train_model(model_ft, criterion, optimizer_ft,
-                         exp_lr_scheduler, num_epochs=20)
+                       exp_lr_scheduler, num_epochs=20)
 
-#test
+# test
 # model = models.resnet152(pretrained=True)
 # num_ftrs = model.fc.in_features
 # model.fc = torch.nn.Linear(num_ftrs, 31)
