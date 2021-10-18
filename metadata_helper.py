@@ -5,6 +5,7 @@ from PIL import Image
 import os
 import csv
 
+
 def read_image_size(img):
     return img.size
 
@@ -32,6 +33,7 @@ def load_csv(in_path):
             img_genuses[image_genus] += 1
             rows.append(row)
     return rows, row1, img_species, img_genuses
+
 
 def get_all_size(in_path, out_path, data_path):
     img_classes = {}
@@ -63,7 +65,7 @@ def get_all_size(in_path, out_path, data_path):
     return img_classes
 
 
-def label_genus(in_path, out_path,guide_path,treshold=20):
+def label_genus(in_path, out_path, guide_path, treshold=20):
     genus_collection = {}
     base_count = 0
     rows, row1, img_species, img_genuses = load_csv(in_path)
@@ -80,16 +82,17 @@ def label_genus(in_path, out_path,guide_path,treshold=20):
             row_copy[1] = genus_collection[genus]
             writer.writerow(row_copy)
     f_out.close()
-    with open(guide_path,'w', encoding='ascii', errors='ignore') as f_guide:
+    with open(guide_path, 'w', encoding='ascii', errors='ignore') as f_guide:
         writer = csv.writer(f_guide)
-        for k,v in genus_collection.items():
+        for k, v in genus_collection.items():
             row = []
             row.append(k)
             row.append(v)
             writer.writerow(row)
     f_guide.close()
 
-def label_species(in_path, out_path,guide_path,treshold = 20):
+
+def label_species(in_path, out_path, guide_path, treshold=20):
     species_collection = {}
     base_count = 0
     rows, row1, img_species, img_genuses = load_csv(in_path)
@@ -98,7 +101,7 @@ def label_species(in_path, out_path,guide_path,treshold = 20):
         for row in rows:
             row_copy = row.copy()
             species = row_copy[1]
-            if img_species[species]<=treshold:
+            if img_species[species] <= treshold:
                 continue
             if species not in species_collection:
                 species_collection[species] = base_count
@@ -106,9 +109,9 @@ def label_species(in_path, out_path,guide_path,treshold = 20):
             row_copy[1] = species_collection[species]
             writer.writerow(row_copy)
     f_out.close()
-    with open(guide_path,'w', encoding='ascii', errors='ignore') as f_guide:
+    with open(guide_path, 'w', encoding='ascii', errors='ignore') as f_guide:
         writer = csv.writer(f_guide)
-        for k,v in species_collection.items():
+        for k, v in species_collection.items():
             row = []
             row.append(k)
             row.append(v)
@@ -118,7 +121,7 @@ def label_species(in_path, out_path,guide_path,treshold = 20):
 
 if __name__ == '__main__':
     treshold = 20
-    #classes = load_csv('input.csv', 'output.csv', './Plaindata')
-    #print(classes)
-    #label_genus('input.csv', 'genus.csv', 'genus_guide.csv')
-    #label_species('input.csv', 'species.csv', 'species_guide.csv')
+    # classes = load_csv('input.csv', 'output.csv', './Plaindata')
+    # print(classes)
+    # label_genus('input.csv', 'genus.csv', 'genus_guide.csv')
+    # label_species('input.csv', 'species.csv', 'species_guide.csv')

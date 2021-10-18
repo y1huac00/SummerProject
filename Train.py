@@ -160,7 +160,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs, dataloaders,
         #         print('Train loss has increased over 3 epochs. Break.')
         #         break
         if sluggish >= 3:
-            print('Train loss has increased over 3 epochs. Break.')
+            print('Best train loss did not decreased over 3 epochs. Break.')
             break
 
         timelist.append(time.time()-epochsince)
