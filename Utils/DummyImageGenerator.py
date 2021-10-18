@@ -2,10 +2,10 @@ from PIL import Image
 import math
 import os
 import csv
+
 '''
 Description: This script is collection of methods related to pasting interested objects into selected backgrounds.
 '''
-
 
 
 def MinMax(min, max):
@@ -42,22 +42,42 @@ def BKGGen(w_max, h_max, mp, ind=0):
     '''
     if ind == 0:
         return Image.new('RGB', (mp * w_max, mp * h_max), (0, 0, 0))
-    elif ind ==1:
+    elif ind == 1:
         return Image.new('RGB', (mp * w_max, mp * h_max), (255, 255, 255))
 
     return Image.new('RGB', (mp * w_max, mp * h_max), (0, 0, 0))
 
 
 def PasteFunc(imgs, bkg, ind=0):
-    '''
+    """
+    Extend here for more pasting methods
     :param imgs: Array of images for pasting
     :param bkg: Background for images
     :param ind: indicator for pasting algorithm
     :return: Pasted image with interested objects
-    '''
+    """
     if ind == 0:
         return 0
     return 0
+
+
+def ROICaculation(w, h, x, y, w_b, h_b):
+    """
+    Create scaled ROI for yolo context
+    Each row is class x_center y_center width height format.
+    :param w: width of object image
+    :param h: height of object image
+    :param x: width of pasted origin point
+    :param y: height of pasted origin point
+    :param w_b: width of the background image
+    :param h_b: height of the background image
+    :return: [x_center, y_center, width, height]
+    """
+    roi_x = (0.5 * w + x) / w_b
+    roi_y = (0.5 * h + y) / h_b
+    roi_w = w/w_b
+    roi_h = h/h_b
+    return roi_x, roi_y, roi_w, roi_h
 
 
 def GenerateDummy(images, bkgi=0, loc=0):
@@ -69,6 +89,7 @@ def GenerateDummy(images, bkgi=0, loc=0):
     '''
     # Possible optimization: create fixed grid to contain images to reduce memory consumption
     img_array = []  # Using queue would be better
+    roi = []
     w_max = 0
     h_max = 0
     mv = len(images)
@@ -81,32 +102,33 @@ def GenerateDummy(images, bkgi=0, loc=0):
         img_array.append(i)
     # Place to plugin background providing functions
     bkg = BKGGen(w_max, h_max, mp, bkgi)
+    w_b, h_b = bkg.size
     for row in range(0, mp):
         if mv >= 1:
             for col in range(0, mp):
                 wi, hi = img_array[mv - 1].size
-                centerX = int((-wi + (2*row+1) * w_max) / 2)
-                centerY = int((-hi + (2*col+1) * w_max) / 2)
+                centerX = int((-wi + (2 * row + 1) * w_max) / 2)
+                centerY = int((-hi + (2 * col + 1) * w_max) / 2)
                 bkg.paste(img_array[mv - 1], (centerX, centerY))
+                roi.append((ROICaculation(wi, hi, centerX, centerY, w_b, h_b)))
                 mv = mv - 1
                 if mv < 1:
                     break
         else:
             break
-    return bkg
+    return bkg, roi
+
 
 def TestFunc():
+    ''' Just test'''
     image_path = ('../Plaindata/')
     ref_path = ('../Species.csv')
     imgs = []
     with open(ref_path, 'r', encoding='ascii', errors='ignore') as f_in:
         csv_reader = csv.reader(f_in, delimiter=',')
-        for i in range(0,9):
+        for i in range(0, 9):
             row = next(csv_reader)
             imgs.append(os.path.join(image_path, row[0]))
     f_in.close()
-    res = GenerateDummy(imgs)
+    res, _ = GenerateDummy(imgs)
     res.save('result.jpg', quality=100)
-
-TestFunc()
-
