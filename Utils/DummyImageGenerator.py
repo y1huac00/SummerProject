@@ -108,7 +108,7 @@ def GenerateDummy(images, bkgi=0, loc=0):
             for col in range(0, mp):
                 wi, hi = img_array[mv - 1].size
                 centerX = int((-wi + (2 * row + 1) * w_max) / 2)
-                centerY = int((-hi + (2 * col + 1) * w_max) / 2)
+                centerY = int((-hi + (2 * col + 1) * h_max) / 2)
                 bkg.paste(img_array[mv - 1], (centerX, centerY))
                 roi.append((ROICaculation(wi, hi, centerX, centerY, w_b, h_b)))
                 mv = mv - 1
