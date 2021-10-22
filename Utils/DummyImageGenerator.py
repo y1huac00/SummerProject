@@ -137,6 +137,3 @@ def TestFunc():
     f_in.close()
     res, _ = GenerateDummy(imgs)
     res.save('result.jpg', quality=100)
-
-
-TestFunc()
