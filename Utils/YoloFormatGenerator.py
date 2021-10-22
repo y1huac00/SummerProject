@@ -30,7 +30,7 @@ if __name__ == '__main__':
     out_images = ('../YoloImages/Images/')
     imgs = []
     classes = []
-    batch: int = 9
+    batch: int = 4
     with open(ref_path, 'r', encoding='ascii', errors='ignore') as f_in:
         csv_reader = csv.reader(f_in, delimiter=',')
         for row in csv_reader:

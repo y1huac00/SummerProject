@@ -2,6 +2,7 @@ from PIL import Image
 import math
 import os
 import csv
+from PIL import ImageDraw
 
 '''
 Description: This script is collection of methods related to pasting interested objects into selected backgrounds.
@@ -63,7 +64,7 @@ def PasteFunc(imgs, bkg, ind=0):
 
 def ROICaculation(w, h, x, y, w_b, h_b):
     """
-    Create scaled ROI for yolo context
+    Create scaled Region Of Interest for yolo context
     Each row is class x_center y_center width height format.
     :param w: width of object image
     :param h: height of object image
@@ -75,8 +76,8 @@ def ROICaculation(w, h, x, y, w_b, h_b):
     """
     roi_x = (0.5 * w + x) / w_b
     roi_y = (0.5 * h + y) / h_b
-    roi_w = w/w_b
-    roi_h = h/h_b
+    roi_w = w / w_b
+    roi_h = h / h_b
     return roi_x, roi_y, roi_w, roi_h
 
 
@@ -92,6 +93,7 @@ def GenerateDummy(images, bkgi=0, loc=0):
     roi = []
     w_max = 0
     h_max = 0
+    cnt = 0
     mv = len(images)
     mp = math.ceil(math.sqrt(mv))
     for img in images:
@@ -104,15 +106,18 @@ def GenerateDummy(images, bkgi=0, loc=0):
     bkg = BKGGen(w_max, h_max, mp, bkgi)
     w_b, h_b = bkg.size
     for row in range(0, mp):
-        if mv >= 1:
+        if cnt <= mv - 1:
             for col in range(0, mp):
-                wi, hi = img_array[mv - 1].size
+                wi, hi = img_array[cnt].size
                 centerX = int((-wi + (2 * row + 1) * w_max) / 2)
                 centerY = int((-hi + (2 * col + 1) * h_max) / 2)
-                bkg.paste(img_array[mv - 1], (centerX, centerY))
+                # LIFO
+                bkg.paste(img_array[cnt], (centerX, centerY))
+                # Debug only Print image path on the image to find bug
+                # ImageDraw.Draw(bkg).text((centerX, centerY), images[cnt], (255, 255, 255))
                 roi.append((ROICaculation(wi, hi, centerX, centerY, w_b, h_b)))
-                mv = mv - 1
-                if mv < 1:
+                cnt += 1
+                if cnt >= mv:
                     break
         else:
             break
@@ -132,3 +137,6 @@ def TestFunc():
     f_in.close()
     res, _ = GenerateDummy(imgs)
     res.save('result.jpg', quality=100)
+
+
+TestFunc()
