@@ -24,13 +24,13 @@ def CreateTrays(len, n):
     return tray_list
 
 if __name__ == '__main__':
-    image_path = ('../Plaindata/')
-    ref_path = ('../Species.csv')
-    out_labels = ('../YoloImages/Labels/')
-    out_images = ('../YoloImages/Images/')
+    image_path = '../Plaindata/'
+    ref_path = '../Species.csv'
+    out_labels = '../YoloImages/Labels/Train/'
+    out_images = '../YoloImages/Images/Train/'
     imgs = []
     classes = []
-    batch: int = 4
+    batch: int = 9
     with open(ref_path, 'r', encoding='ascii', errors='ignore') as f_in:
         csv_reader = csv.reader(f_in, delimiter=',')
         for row in csv_reader:
