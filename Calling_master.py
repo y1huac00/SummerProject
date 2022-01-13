@@ -3,28 +3,11 @@ import pandas as pd
 import torch
 import time
 import copy
-import numpy as np
-import tqdm
-from functools import partial
-from torchvision.io import read_image
 from torch.utils.data import Dataset
-from torchvision import datasets, transforms, models
-from torchvision.transforms import ToTensor
+from torchvision import transforms, models
 from torch.utils.data import DataLoader
 from PIL import Image
-import matplotlib.pyplot as plt
-from ray import tune
-from ray.tune import CLIReporter
-from ray.tune.schedulers import ASHAScheduler
 from Classification_helper import verify_model
-
-config = {
-    "lr": tune.loguniform(1e-5, 1e-1),
-    "batch_size": tune.grid_search([16, 32, 64, 112]),
-    "step_size": tune.uniform(3, 8),
-    "gamma": tune.grid_search([0.01, 0.05, 0.1, 0.2, 0.5]),
-    "momentum": tune.grid_search([0.5, 0.6, 0.7, 0.8, 0.9])
-}
 
 CLASSDICT = {
     'species': 31,

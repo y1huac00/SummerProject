@@ -86,7 +86,7 @@ def GenerateDummy(images, bkgi=0, loc=0):
     :param loc: Locating indicator for location functions
     :param bkg: background generating function
     :param images: List of path to images
-    :return: a dummy images contained image for training
+    :return: a dummy images contained image for training, bkg is the dummy image and roi is the region of interest
     '''
     # Possible optimization: create fixed grid to contain images to reduce memory consumption
     img_array = []  # Using queue would be better
@@ -111,9 +111,9 @@ def GenerateDummy(images, bkgi=0, loc=0):
                 wi, hi = img_array[cnt].size
                 centerX = int((-wi + (2 * row + 1) * w_max) / 2)
                 centerY = int((-hi + (2 * col + 1) * h_max) / 2)
-                # LIFO
+                # LIFO: Possibile bug if labeled in FIFO order
                 bkg.paste(img_array[cnt], (centerX, centerY))
-                # Debug only Print image path on the image to find bug
+                # Debug only: Print image path on the image to find bug
                 # ImageDraw.Draw(bkg).text((centerX, centerY), images[cnt], (255, 255, 255))
                 roi.append((ROICaculation(wi, hi, centerX, centerY, w_b, h_b)))
                 cnt += 1
