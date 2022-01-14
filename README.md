@@ -8,8 +8,6 @@ What to expect in next stage?
 
 # Start running
 Following is a guide for you to start running using the sample foram dataset.
-
-##Pre-request
 The project is tested under following setup:
 ```
 Python version >= 3.6
@@ -52,12 +50,26 @@ metadata. Please refer to the following introductions.
             <li><code>input.csv</code>: a file containing image names and species classes of forums from original data. It is the output from main.py.</li>
             <li><code>output.csv</code>: a file containing all information in the input.csv plus image sizes of data. It is the output from metadata_helper.py.</li>
             <li><code>species.csv</code>: a file containing image names and numbered species classes. It us the output from metadata_helper.py.<\li>
-            <li><code>species_guide.csv</code>: a file mapping numbers to species. It is the output from metadata_helper.py.<\li>
-            <li><code>genus.csv</code>: a file containing image names and numbered genus classes. It is the output from metadata_helper.py.<\li>
-            <li><code>genus_guide.csv</code>: a file mapping numbers to genus. It is the output from metadata_helper.py.<\li>
-            <li><code>genus_train.csv</code>: a file showing the train-test split results. It is the output from train_test_split.csv<\li>
+            <li><code>species_guide.csv</code>: a file mapping numbers to species. It is the output from metadata_helper.py. <\li>
+            <li><code>genus.csv</code>: a file containing image names and numbered genus classes. It is the output from metadata_helper.py. <\li>
+            <li><code>genus_guide.csv</code>: a file mapping numbers to genus. It is the output from metadata_helper.py. <\li>
+            <li><code>genus_train.csv</code>: a file showing the train-test split results. It is the output from train_test_split.csv. <\li>
         </ul>
 </details>
+
+## Strat training model
+
+By default, Resnet 152 is select for training classification. Run following script to start training:
+
+```
+python calling_master.py
+```
+You can also add parameters to do custom training by calling ```entrance.py```.
+Trained models will be saved under ```project/models/*```.
+
+## Inference on test data
+
+to be done
 
 ## Pre-trained model
 Resnet 152 with 86.95% top 1 validation accuracy: https://1drv.ms/u/s!Avhb6zEgsVg1naFz-XupQWBVyNt2yQ?e=KwnKv7
