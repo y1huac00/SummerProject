@@ -5,6 +5,9 @@ of forums will be used to test the efficiency of the models.
 What to expect in next stage?
 * Testing all popular models on the project
 * Identify popular species in Hong Kong
+* Implement swin transformer
+* Integrate auto ML learning frameworks (now AutoGluon integrated)
+* Create easy to use procedure
 
 # Start running
 Following is a guide for you to start running using the sample foram dataset.

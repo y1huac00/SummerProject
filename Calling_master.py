@@ -124,7 +124,6 @@ def train_model(model, criterion, optimizer, scheduler, dataloaders, dataset_siz
                 phase, epoch_loss, epoch_acc))
             # deep copy the model
             if phase == 'val':
-                tune.report(loss=epoch_loss, accuracy=epoch_acc)
                 if epoch_acc > best_acc:
                     best_acc = epoch_acc
                     best_model_wts = copy.deepcopy(model.state_dict())
@@ -187,7 +186,8 @@ def single_train(model, target, batch_size, n_epochs, criterion, optimizer, sche
     dataloaders['train'], dataset_sizes['train'] = load_data('train', target, data_transforms, batch_size)
     dataloaders['val'], dataset_sizes['val'] = load_data('val', target, data_transforms, batch_size)
     model_ft = train_model(model=model, criterion=criterion, optimizer=optimizer,
-                           scheduler=scheduler, num_epochs=n_epochs)
+                           scheduler=scheduler, dataloaders=dataloaders,
+                           dataset_sizes=dataset_sizes, num_epochs=n_epochs)
     return model_ft
 
 
@@ -234,9 +234,9 @@ dataloaders['test'], dataset_sizes['test'] = load_data('test', target, data_tran
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-model_ft = models.resnet152(pretrained=True)
-# num_ftrs = model_ft.fc.in_features
-# model_ft.fc = torch.nn.Linear(num_ftrs, CLASSDICT[target])
+model_ft = models.resnet18(pretrained=True)
+num_ftrs = model_ft.fc.in_features
+model_ft.fc = torch.nn.Linear(num_ftrs, CLASSDICT[target])
 # model_ft.load_state_dict(torch.load(MODELPATH, map_location=torch.device(device)))
 #
 # verify_model(model_ft, dataloaders['test'], device, target, dataset_sizes['test'])
@@ -244,11 +244,11 @@ model_ft = models.resnet152(pretrained=True)
 # test_model(model_ft, MODELPATH, dataloaders['test'], dataset_sizes['test'], device, target)
 
 # Observe that all parameters are being optimized
-# optimizer_ft = torch.optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
+optimizer_ft = torch.optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
 '''Need a parameter searching grid'''
 # optimizer_ft = torch.optim.ASGD(model_ft.parameters(), lr=0.001,lambd=0.0002)
 # Decay LR by a factor of 0.1 every 7 epochs
-# exp_lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer_ft, step_size=5, gamma=0.1)
+exp_lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer_ft, step_size=5, gamma=0.1)
 
 # result = tune.run(
 #     partial(std_call_train,
@@ -256,6 +256,6 @@ model_ft = models.resnet152(pretrained=True)
 #     resources_per_trial={"cpu": 20, "gpu": 1},
 #     config=config)
 
-test_model(model_ft, './Models/0.91_acc.pth', dataloaders['test'], dataset_sizes['test'], device, target)
-# criterion = torch.nn.CrossEntropyLoss()
-# model_ft = train_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler, num_epochs=25)
+# test_model(model_ft, './Models/0.91_acc.pth', dataloaders['test'], dataset_sizes['test'], device, target)
+criterion = torch.nn.CrossEntropyLoss()
+model_ft = single_train(model_ft, 'species', 16, 25, criterion, optimizer_ft, exp_lr_scheduler)
