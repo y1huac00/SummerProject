@@ -3,7 +3,6 @@ import torch
 from torchvision import models
 from Train import std_call_train
 from Train import single_train
-from Train import config
 """
 This is an entrance for receiving terminal command lines and 
 calling training functions according to specified model and hyper-parameters.
@@ -13,12 +12,8 @@ arg = sys.argv[1:]
 l = ['model','target','n_class','phase','pretrained','batch_size','n_epochs','criterion','optimizer','learning_rate',
      'momentum','scheduler','step_size','gamma']
 
-if len(arg) == 2:
-    if arg[0] == 'tune' and arg[1] == 'default':
-        print(str(config))
-    elif arg[0] == 'tune' and arg[1] == 'm':
-        print('make changes')
-elif len(arg) == 14:
+
+if len(arg) == 14:
     modeldict = dict(zip(l,arg))
     input = input(str(modeldict)[1:-1].replace('\'','').replace(', ','\n') +
                   '\nContinue with the above model and hyper-parameters? ([y]/n): ')

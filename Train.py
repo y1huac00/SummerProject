@@ -3,28 +3,11 @@ import pandas as pd
 import torch
 import time
 import copy
-import numpy as np
-import tqdm
-from functools import partial
-from torchvision.io import read_image
 from torch.utils.data import Dataset
-from torchvision import datasets, transforms, models
-from torchvision.transforms import ToTensor
+from torchvision import transforms
 from torch.utils.data import DataLoader
 from PIL import Image
-import matplotlib.pyplot as plt
-from ray import tune
-from ray.tune import CLIReporter
-from ray.tune.schedulers import ASHAScheduler
 from Classification_helper import verify_model
-
-config = {
-    "lr": tune.loguniform(1e-5, 1e-1),
-    "batch_size": tune.grid_search([16, 32, 64, 112]),
-    "step_size": tune.uniform(3,8),
-    "gamma":tune.grid_search([0.01,0.05,0.1,0.2,0.5]),
-    "momentum":tune.grid_search([0.5,0.6,0.7,0.8,0.9])
-}
 
 data_transforms = transforms.Compose([transforms.Resize([256, 256]),
                                       transforms.CenterCrop([224, 224]),
@@ -140,6 +123,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs, dataloaders,
             if epoch_loss < best_loss:
                 best_loss = epoch_loss
                 sluggish = 0
+            sluggish += 1
             # if phase == 'train':
             #     trainloss.append(epoch_loss)
             # else:
@@ -154,11 +138,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs, dataloaders,
                 if epoch_acc > best_acc:
                     best_acc = epoch_acc
                     best_model_wts = copy.deepcopy(model.state_dict())
-        # To be modified. Train doesn't improve for three rounds means that the best loss is not reduced for three rounds.
-        # if epoch > 3:
-        #     if (trainloss[-3] < trainloss[-2] < trainloss[-1]) and (valloss[-3] < valloss[-2] < valloss[-1]):
-        #         print('Train loss has increased over 3 epochs. Break.')
-        #         break
+
         if sluggish >= 3:
             print('Best train loss did not decreased over 3 epochs. Break.')
             break
@@ -177,10 +157,9 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs, dataloaders,
     print('Best val Acc: {:4f}'.format(best_acc))
 
     # load best model weights
-    if best_acc >= 0.75:
-        model.load_state_dict(best_model_wts)
-        model_save_path = PATH+str(time.time())+'_'+str(best_acc)+'.pth'
-        torch.save(model.state_dict(), model_save_path)
+    model.load_state_dict(best_model_wts)
+    model_save_path = PATH+str(time.time())+'_'+str(best_acc)+'.pth'
+    torch.save(model.state_dict(), model_save_path)
     return model
 
 
@@ -200,10 +179,11 @@ def std_call_train(config, model, checkpoint_dir=None, data_dir=None):
     model.fc = torch.nn.Linear(num_ftrs, 31)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = model.to(device)
-    batch_size = config['batch_size']
-    dataloaders, dataset_sizes = [{},{}]
-    dataloaders['train'], dataset_sizes['train'] = load_data('train', target='species', d_transfroms=data_transforms, batch_size=15)
-    dataloaders['val'], dataset_sizes['val'] = load_data('val', target='species', d_transfroms=data_transforms, batch_size=15)
+    dataloaders, dataset_sizes = [{}, {}]
+    dataloaders['train'], dataset_sizes['train'] = load_data('train', target='species',
+                                                             d_transfroms=data_transforms, batch_size=15)
+    dataloaders['val'], dataset_sizes['val'] = load_data('val', target='species',
+                                                         d_transfroms=data_transforms, batch_size=15)
     optimizer_ft = torch.optim.SGD(model.parameters(), lr=config["lr"], momentum=config['momentum'])
     exp_lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
     criterion = torch.nn.CrossEntropyLoss()
@@ -228,7 +208,6 @@ def tune_train(config, model, target):
     model.fc = torch.nn.Linear(num_ftrs, CLASSDICT[target])
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = model.to(device)
-
 
 
 def test_model(model, pre_trained_path, data, data_size, device, target):
