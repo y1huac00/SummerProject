@@ -13,7 +13,12 @@ l = ['model','target','n_class','phase','pretrained','batch_size','n_epochs','cr
      'momentum','scheduler','step_size','gamma']
 
 
-if len(arg) == 14:
+if len(arg) == 0:
+    print('Using default settings for training. Model: Resnet18.')
+    model = models.resnet18(pretrained=True)
+    std_call_train(model)
+
+elif len(arg) == 14:
     modeldict = dict(zip(l,arg))
     input = input(str(modeldict)[1:-1].replace('\'','').replace(', ','\n') +
                   '\nContinue with the above model and hyper-parameters? ([y]/n): ')
@@ -24,6 +29,7 @@ if len(arg) == 14:
         if 'resnet' in modeldict['model']:
             if modeldict['model'] == 'resnet18':
                 model = models.resnet18(pretrained=True if modeldict['pretrained'] == 't' else False)
+
             elif modeldict['model'] == 'resnet34':
                 model = models.resnet34(pretrained=True if modeldict['pretrained'] == 't' else False)
             elif modeldict['model'] == 'resnet50':

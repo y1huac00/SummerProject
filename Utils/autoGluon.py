@@ -12,6 +12,6 @@ print('train #:', len(train_data), 'test #:', len(test))
 
 predictor = ImagePredictor()
 # since the original dataset does not provide validation split, the `fit` function splits it randomly with 90/10 ratio
-predictor.fit(train_data, hyperparameters={'epochs': 10})  # you can trust the default config, we reduce the # epoch to save some build time
+predictor.fit(train_data, hyperparameters={'epochs': 25})  # you can trust the default config, we reduce the # epoch to save some build time
 fit_result = predictor.fit_summary()
 print('Top-1 train acc: %.3f, val acc: %.3f' %(fit_result['train_acc'], fit_result['valid_acc']))

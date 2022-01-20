@@ -8,6 +8,7 @@ from torchvision import transforms
 from torch.utils.data import DataLoader
 from PIL import Image
 from Classification_helper import verify_model
+from tqdm import tqdm
 
 data_transforms = transforms.Compose([transforms.Resize([256, 256]),
                                       transforms.CenterCrop([224, 224]),
@@ -113,8 +114,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs, dataloaders,
                 running_loss += loss.item() * inputs.size(0)
                 running_corrects += torch.sum(preds == labels.data)
                 cnt += 1
-                if cnt % 100 == 0:
-                    print('finished ', cnt, ' batches')
+                print("", end=f"\rComplete: {cnt} Batches")
             if phase == 'train':
                 scheduler.step()
 
@@ -173,7 +173,7 @@ def load_data(phase, target, d_transfroms, batch_size=16):
     return data_loader, data_size
 
 """----------------------------------to be modified----------------------------------"""
-def std_call_train(config, model, checkpoint_dir=None, data_dir=None):
+def std_call_train(model, batch_size = 96):
     os.chdir(DEFAULTWD)
     num_ftrs = model.fc.in_features
     model.fc = torch.nn.Linear(num_ftrs, 31)
@@ -181,14 +181,14 @@ def std_call_train(config, model, checkpoint_dir=None, data_dir=None):
     model = model.to(device)
     dataloaders, dataset_sizes = [{}, {}]
     dataloaders['train'], dataset_sizes['train'] = load_data('train', target='species',
-                                                             d_transfroms=data_transforms, batch_size=15)
+                                                             d_transfroms=data_transforms, batch_size=batch_size)
     dataloaders['val'], dataset_sizes['val'] = load_data('val', target='species',
-                                                         d_transfroms=data_transforms, batch_size=15)
-    optimizer_ft = torch.optim.SGD(model.parameters(), lr=config["lr"], momentum=config['momentum'])
+                                                         d_transfroms=data_transforms, batch_size=batch_size)
+    optimizer_ft = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
     exp_lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
     criterion = torch.nn.CrossEntropyLoss()
     model_ft = train_model(model, criterion, optimizer_ft,
-                          exp_lr_scheduler, num_epochs=25)
+                          exp_lr_scheduler, num_epochs=25,dataloaders=dataloaders,dataset_sizes=dataset_sizes,device=device)
     return model_ft
 
 def single_train(model, target, batch_size, n_epochs, criterion, optimizer, scheduler):
@@ -216,4 +216,9 @@ def test_model(model, pre_trained_path, data, data_size, device, target):
     model.load_state_dict(torch.load(pre_trained_path, map_location=torch.device(device)))
 
     verify_model(model, data, device, target, data_size)
+
+
+def loading_data():
+    return 0
+
 
