@@ -173,6 +173,11 @@ def load_data(phase, target, d_transfroms, batch_size=16):
     return data_loader, data_size
 
 """----------------------------------to be modified----------------------------------"""
+'''
+    std_call_train included the standard testing interface for the model for test only.
+    The default model is resnet18 and batch_size is 96.
+    The default settings is only acceptable for running for testing in new environment.
+'''
 def std_call_train(model, batch_size = 96):
     os.chdir(DEFAULTWD)
     num_ftrs = model.fc.in_features
