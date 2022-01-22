@@ -62,12 +62,16 @@ metadata. Please refer to the following introductions.
 
 ## Strat training model
 
-By default, Resnet 152 is select for training classification. Run following script to start training:
+By default, Resnet 50 is select for training classification. Run following script to start training:
 
 ```
-python calling_master.py
+python entrance.py
 ```
-You can also add parameters to do custom training by calling ```entrance.py```.
+You can also add parameters to do custom training by calling ```entrance.py```. For example:
+```
+python entrance.py --model=resnet152 --lr=0.01
+```
+There are tons of parameters could be tuned. Please refer to the code for more details.
 Trained models will be saved under ```project/models/*```.
 
 ## Inference on test data
