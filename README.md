@@ -9,6 +9,36 @@ What to expect in next stage?
 * Integrate auto ML learning frameworks (now AutoGluon integrated)
 * Create easy to use procedure
 
+# Development plan
+
+## Part A: Visualize
+
+* The ```cm_test.py``` file contains an un-implemented visualize method to show the confusion 
+matrix of classification results. The next step is to generalize the function in that file
+to make it runnable for other classification results. The second goal is to make the output 
+confusion matrix more visually acceptable.
+
+* There is no visualize method for AutoGluon implementation and Yolo implementation.
+
+* Individual image visualization is not available. We can add a new blank area under the image
+and paste text showing the classification result on it.
+
+* A visualization for ```classification_result.csv``` could be included.
+
+## Part B: Evaluation
+
+* No evaluation method included for YOLO implementation.
+* No evaluation method for AutoGluon result.
+
+## Part C: Usability
+* The process for include data is hard for non-technical users. A click-to-run script
+is required.
+
+## Part D: Growth
+* More auto-ml framework could be tested.
+* More object detection method could be tested.
+* Future direction of the project should be more focus on object detection.
+
 # Start running
 Following is a guide for you to start running using the sample foram dataset.
 The project is tested under following setup:
@@ -77,6 +107,36 @@ Trained models will be saved under ```project/models/*```.
 ## Inference on test data
 
 to be done
+
+## AutoGluon
+
+The project also explored auto machinelearning to test its suitability to be included 
+for future use. Currently, only training is completed. 
+
+Before running, it may be slightly hard for you to use AutoGluon on Windows if GPU training
+is necessary for you. Please follow following setup to make ensure the running smooth.
+
+1. Pre-request:
+    ```
+    python version >=3.6
+   Windows 11
+   WSL2
+   CUDA 11.X installed both on Windows host system and WSL
+   CUDNN of corresponding CUDA version installed both on Windows host system and WSL
+    ```
+2. Install AutoGluon:
+    ```
+    pip3 install -U pip
+    pip3 install -U setuptools wheel
+    pip3 install mxnet-cu112
+    pip3 install --pre autogluon
+    ```
+
+After finishing installation, go to ```project/utils/``` and run following script to do training.
+```
+python autoGluon.py
+```
+The default setting could achieve 88% top-1 accuracy at 20th epoch.
 
 ## Pre-trained model
 Resnet 152 with 86.95% top 1 validation accuracy: https://1drv.ms/u/s!Avhb6zEgsVg1naFz-XupQWBVyNt2yQ?e=KwnKv7
