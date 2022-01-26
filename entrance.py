@@ -1,8 +1,6 @@
 import argparse
-import sys
 import torch
 from torchvision import models
-from Train import std_call_train
 from Train import single_train
 
 """
@@ -81,10 +79,10 @@ def determine_model(arg_model, arg_pretrain, arg_classes):
     elif arg_model.lower() == 'resnet101':
         model = models.resnet101(pretrained=arg_pretrain)
     elif arg_model.lower() == 'resnet152':
-        model = models.resnet18(pretrained=arg_pretrain)
+        model = models.resnet152(pretrained=arg_pretrain)
     elif arg_model.lower() == 'vgg16':
         model = models.vgg16(pretrained=arg_pretrain)
-        model.classifier[6] = torch.nn.Linear(4096, arg_classes)
+        model.classifier[6] = torch.nn.Linear(in_features=4096, out_features=arg_classes)
     else:
         model = models.resnet50(pretrained=arg_pretrain)
     return model
@@ -119,9 +117,11 @@ criterion = determine_criterion(args.criterion)
 scheduler = determine_scheduler(optimizer, args.scheduler, args.step_size, args.gamma)
 
 try:
-    model = single_train(model=model, target=args.target, batch_size=args.batch_size,
+    model, save_path = single_train(model=model, target=args.target, batch_size=args.batch_size,
                                 n_epochs=args.epochs, criterion=criterion, optimizer=optimizer,
                                 scheduler=scheduler)
+    save_path = save_path+'_'+args.model+'.pth'
+    torch.save(model.state_dict(), save_path)
 except Exception as e:
     print(str(e))
     exit('Training failed.')

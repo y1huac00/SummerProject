@@ -8,7 +8,6 @@ from torchvision import transforms
 from torch.utils.data import DataLoader
 from PIL import Image
 from Classification_helper import verify_model
-from tqdm import tqdm
 
 data_transforms = transforms.Compose([transforms.Resize([256, 256]),
                                       transforms.CenterCrop([224, 224]),
@@ -114,7 +113,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs, dataloaders,
                 running_loss += loss.item() * inputs.size(0)
                 running_corrects += torch.sum(preds == labels.data)
                 cnt += 1
-                print("", end=f"\rComplete: {cnt} Batches")
+                print("", end=f"\rCompleted: {cnt} Batches")
             if phase == 'train':
                 scheduler.step()
 
@@ -140,7 +139,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs, dataloaders,
                     best_model_wts = copy.deepcopy(model.state_dict())
 
         if sluggish >= 3:
-            print('Best train loss did not decreased over 3 epochs. Break.')
+            print('Best train loss did not improved over 3 epochs. Break.')
             break
 
         timelist.append(time.time()-epochsince)
@@ -158,9 +157,9 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs, dataloaders,
 
     # load best model weights
     model.load_state_dict(best_model_wts)
-    model_save_path = PATH+str(time.time())+'_'+str(best_acc)+'.pth'
-    torch.save(model.state_dict(), model_save_path)
-    return model
+    model_save_path = PATH+str(time.time())+'_'+str(best_acc.cpu().data.numpy().round(decimals=2))
+    #torch.save(model.state_dict(), model_save_path)
+    return model, model_save_path
 
 
 # Load train, test and validation data by phase. Phase = train, val and test. Target = genus and species

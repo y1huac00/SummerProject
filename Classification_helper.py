@@ -1,11 +1,7 @@
-import os
-import numpy as np
 import pandas as pd
 import time
 import torch
 import csv
-from torchvision import transforms, models
-import tqdm
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from matplotlib import pyplot as plt
 import seaborn as sn
@@ -106,7 +102,7 @@ def plot_prediction(test_file):
     cm = confusion_matrix(y_pred, y_real)
     df_cm = pd.DataFrame(cm, index=classes,
                          columns=classes)
-    plt.figure(figsize=(14, 8))
+    plt.figure()
     sn.heatmap(df_cm, annot=True)
     plt.show()
 
@@ -123,7 +119,7 @@ def result_visualization(img_path):
     return 0
 
 
-#plot_prediction('./Results/1626328210species_result.csv')
+#plot_prediction('./Results/1625212258species_result.csv')
 
 # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # model = models.resnet152(pretrained=True)
