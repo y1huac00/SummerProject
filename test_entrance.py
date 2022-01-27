@@ -2,6 +2,38 @@ import argparse
 import sys
 import torch
 from torchvision import models
-from Classification_helper import verify_model
+from Train import test_model, load_data
 
-model_path = 'Models/1643196421.952756_0.89_vgg16.pth'
+'''
+    Default model in case no parameter of model provided.
+    1. Get the model path
+    2. Decode the model
+    3. Doing classification and output the result
+'''
+MODEL_PATH = 'Models/1643196421_0.89_species_vgg16.pth'
+
+def determine_model(arg_model):
+    if arg_model.lower() == 'resnet18':
+        model = models.resnet18()
+    elif arg_model.lower() == 'resnet34':
+        model = models.resnet34()
+    elif arg_model.lower() == 'resnet101':
+        model = models.resnet101()
+    elif arg_model.lower() == 'resnet152':
+        model = models.resnet152()
+    elif arg_model.lower() == 'vgg16':
+        model = models.vgg16()
+    else:
+        model = models.resnet50()
+    return model
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--model_path",
+                    type=str,
+                    default=MODEL_PATH,
+                    help="Model path for your classification task.")
+args = parser.parse_args()
+model_info = args.model_path.split('_')[-1].split('.')[0]
+model = determine_model(model_info)
+target = args.model_path.split('_')[-2]
+test_model(model, args.model_path, target)

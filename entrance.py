@@ -28,7 +28,7 @@ parser.add_argument("--model",
 parser.add_argument("--target",
                     type=str,
                     default='species',
-                    help="The target for training, true for species and false for genus.")
+                    help="The target for training, species or genus.")
 parser.add_argument("--classes",
                     type=int,
                     default=31,
@@ -120,7 +120,7 @@ try:
     model, save_path = single_train(model=model, target=args.target, batch_size=args.batch_size,
                                 n_epochs=args.epochs, criterion=criterion, optimizer=optimizer,
                                 scheduler=scheduler)
-    save_path = save_path+'_'+args.model+'.pth'
+    save_path = save_path+'_'+args.target+'_'+args.model+'.pth'
     torch.save(model.state_dict(), save_path)
 except Exception as e:
     print(str(e))

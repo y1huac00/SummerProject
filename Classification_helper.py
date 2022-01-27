@@ -43,10 +43,10 @@ def extract_class_label(target):
 
 
 # Classify image and write the results into
-def verify_model(model, test_loader, device, target, data_size):
+def verify_model(model, test_loader, device, target):
     """
     Get the classified label of each image. Return a classification results csv file in the Results Directory.
-    :param model: A trained CNN model.
+    :param model: A pre-trained CNN model.
     :param test_loader: An instance of Data_loader class. Defines the source of image.
     :param device: Cpu or cuda.
     :param target: Species or genus.
@@ -56,6 +56,7 @@ def verify_model(model, test_loader, device, target, data_size):
     since = time.time()
     outfile = './Results/' + str(int(since)) + target + '_result.csv'
     class_dict = get_class_meaning(target)
+    data_count = 0
     with torch.no_grad():
         # iterate over batch
         for images, labels, paths in test_loader:
@@ -66,7 +67,9 @@ def verify_model(model, test_loader, device, target, data_size):
             # collect the correct predictions for each class
             running_corrects = 0
             running_corrects += torch.sum(predictions == labels.data)
+            data_count += 1
 
+            #Horrible efficiency
             with open(outfile, 'a', encoding='ascii', errors='ignore') as f_guide:
                 writer = csv.writer(f_guide)
                 for label, prediction, path in zip(labels, predictions, paths):
@@ -79,7 +82,7 @@ def verify_model(model, test_loader, device, target, data_size):
                     row.append(pred_t)
                     writer.writerow(row)
         f_guide.close()
-    accu = running_corrects.double() / data_size
+    accu = running_corrects.double() / data_count
     print('Current test Acc: {:4f}'.format(accu))
     return accu
 

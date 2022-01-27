@@ -157,7 +157,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs, dataloaders,
 
     # load best model weights
     model.load_state_dict(best_model_wts)
-    model_save_path = PATH+str(time.time())+'_'+str(best_acc.cpu().data.numpy().round(decimals=2))
+    model_save_path = PATH+str(int(time.time()))+'_'+str(best_acc.cpu().data.numpy().round(decimals=2))
     #torch.save(model.state_dict(), model_save_path)
     return model, model_save_path
 
@@ -214,12 +214,14 @@ def tune_train(config, model, target):
     model = model.to(device)
 
 
-def test_model(model, pre_trained_path, data, data_size, device, target):
+def test_model(model, pre_trained_path, target):
     num_ftrs = model.fc.in_features
     model.fc = torch.nn.Linear(num_ftrs, CLASSDICT[target])
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model.load_state_dict(torch.load(pre_trained_path, map_location=torch.device(device)))
-
-    verify_model(model, data, device, target, data_size)
+    model = model.to(device)
+    test_data = load_data('test', target, data_transforms)
+    verify_model(model, test_data, device, target)
 
 
 def loading_data():
