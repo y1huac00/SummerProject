@@ -43,7 +43,7 @@ def extract_class_label(target):
 
 
 # Classify image and write the results into
-def verify_model(model, test_loader, device, target):
+def verify_model(model, test_loader, device, target, data_size):
     """
     Get the classified label of each image. Return a classification results csv file in the Results Directory.
     :param model: A pre-trained CNN model.
@@ -56,7 +56,7 @@ def verify_model(model, test_loader, device, target):
     since = time.time()
     outfile = './Results/' + str(int(since)) + target + '_result.csv'
     class_dict = get_class_meaning(target)
-    data_count = 0
+    running_corrects = 0
     with torch.no_grad():
         # iterate over batch
         for images, labels, paths in test_loader:
@@ -65,12 +65,11 @@ def verify_model(model, test_loader, device, target):
             outputs = model(images)
             _, predictions = torch.max(outputs, 1)
             # collect the correct predictions for each class
-            running_corrects = 0
+
             running_corrects += torch.sum(predictions == labels.data)
-            data_count += 1
 
             #Horrible efficiency
-            with open(outfile, 'a', encoding='ascii', errors='ignore') as f_guide:
+            with open(outfile, 'a', encoding='ascii', errors='ignore', newline='') as f_guide:
                 writer = csv.writer(f_guide)
                 for label, prediction, path in zip(labels, predictions, paths):
                     row = [path]
@@ -82,7 +81,7 @@ def verify_model(model, test_loader, device, target):
                     row.append(pred_t)
                     writer.writerow(row)
         f_guide.close()
-    accu = running_corrects.double() / data_count
+    accu = running_corrects.double() / data_size
     print('Current test Acc: {:4f}'.format(accu))
     return accu
 
@@ -122,7 +121,7 @@ def result_visualization(img_path):
     return 0
 
 
-#plot_prediction('./Results/1625212258species_result.csv')
+#plot_prediction('./Results/1643349722species_result.csv')
 
 # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # model = models.resnet152(pretrained=True)

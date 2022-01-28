@@ -10,7 +10,7 @@ from Train import test_model, load_data
     2. Decode the model
     3. Doing classification and output the result
 '''
-MODEL_PATH = 'Models/1643196421_0.89_species_vgg16.pth'
+MODEL_PATH = 'Models/acc_0.896_species_resnet50.pth'
 
 def determine_model(arg_model):
     if arg_model.lower() == 'resnet18':
@@ -20,11 +20,11 @@ def determine_model(arg_model):
     elif arg_model.lower() == 'resnet101':
         model = models.resnet101()
     elif arg_model.lower() == 'resnet152':
-        model = models.resnet152()
+        model = models.resnet152(pretrained=True)
     elif arg_model.lower() == 'vgg16':
         model = models.vgg16()
     else:
-        model = models.resnet50()
+        model = models.resnet50(pretrained=True)
     return model
 
 parser = argparse.ArgumentParser()
