@@ -74,17 +74,27 @@ print('Using ', device, '.')
 def determine_model(arg_model, arg_pretrain, arg_classes):
     if arg_model.lower() == 'resnet18':
         model = models.resnet18(pretrained=arg_pretrain)
+        num_ftrs = model.fc.in_features
+        model.fc = torch.nn.Linear(num_ftrs, arg_classes)
     elif arg_model.lower() == 'resnet34':
         model = models.resnet34(pretrained=arg_pretrain)
+        num_ftrs = model.fc.in_features
+        model.fc = torch.nn.Linear(num_ftrs, arg_classes)
     elif arg_model.lower() == 'resnet101':
         model = models.resnet101(pretrained=arg_pretrain)
+        num_ftrs = model.fc.in_features
+        model.fc = torch.nn.Linear(num_ftrs, arg_classes)
     elif arg_model.lower() == 'resnet152':
         model = models.resnet152(pretrained=arg_pretrain)
+        num_ftrs = model.fc.in_features
+        model.fc = torch.nn.Linear(num_ftrs, arg_classes)
     elif arg_model.lower() == 'vgg16':
         model = models.vgg16(pretrained=arg_pretrain)
         model.classifier[6] = torch.nn.Linear(in_features=4096, out_features=arg_classes)
     else:
         model = models.resnet50(pretrained=arg_pretrain)
+        num_ftrs = model.fc.in_features
+        model.fc = torch.nn.Linear(num_ftrs, arg_classes)
     return model
 
 

@@ -5,6 +5,7 @@ import csv
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from matplotlib import pyplot as plt
 import seaborn as sn
+from tqdm import tqdm
 
 PATH = './Models/0.91_acc.pth'
 
@@ -57,30 +58,39 @@ def verify_model(model, test_loader, device, target, data_size):
     outfile = './Results/' + str(int(since)) + target + '_result.csv'
     class_dict = get_class_meaning(target)
     running_corrects = 0
+    all_labels =[]
+    all_paths = []
+    all_predictions = []
     with torch.no_grad():
         # iterate over batch
-        for images, labels, paths in test_loader:
+        for images, labels, paths in tqdm(test_loader):
+            all_paths.append(paths)
+            all_labels.append(labels)
+
             images = images.to(device)
             labels = labels.to(device)
             outputs = model(images)
             _, predictions = torch.max(outputs, 1)
+            all_predictions.append(predictions)
             # collect the correct predictions for each class
 
             running_corrects += torch.sum(predictions == labels.data)
 
-            #Horrible efficiency
-            with open(outfile, 'a', encoding='ascii', errors='ignore', newline='') as f_guide:
-                writer = csv.writer(f_guide)
-                for label, prediction, path in zip(labels, predictions, paths):
-                    row = [path]
-                    label = int(label.numpy())
-                    label_t = class_dict[label]
-                    row.append(label_t)
-                    prediction = int(prediction.numpy())
-                    pred_t = class_dict[prediction]
-                    row.append(pred_t)
-                    writer.writerow(row)
-        f_guide.close()
+    # Horrible efficiency
+    all_predictions = all_predictions
+    with open(outfile, 'a', encoding='ascii', errors='ignore', newline='') as f_guide:
+        writer = csv.writer(f_guide)
+        for label_batch, prediction_batch, path_batch in zip(all_labels, all_predictions, all_paths):
+            for label, prediction, path in zip(label_batch, prediction_batch, path_batch):
+                row = [path]
+                label = int(label.numpy())
+                label_t = class_dict[label]
+                row.append(label_t)
+                prediction = int(prediction.cpu().data.numpy())
+                pred_t = class_dict[prediction]
+                row.append(pred_t)
+                writer.writerow(row)
+    f_guide.close()
     accu = running_corrects.double() / data_size
     print('Current test Acc: {:4f}'.format(accu))
     return accu

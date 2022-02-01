@@ -8,6 +8,14 @@ from torchvision import transforms
 from torch.utils.data import DataLoader
 from PIL import Image
 from Classification_helper import verify_model
+from tqdm import tqdm
+
+# data_transforms = transforms.Compose([transforms.Resize([512, 512]),
+#                                       transforms.CenterCrop([448, 448]),
+#                                       transforms.ToTensor(),
+#                                       transforms.Normalize(
+#                                           mean=[0.12, 0.128, 0.238],
+#                                           std=[0.113, 0.112, 0.227])])
 
 data_transforms = transforms.Compose([transforms.Resize([256, 256]),
                                       transforms.CenterCrop([224, 224]),
@@ -15,6 +23,13 @@ data_transforms = transforms.Compose([transforms.Resize([256, 256]),
                                       transforms.Normalize(
                                           mean=[0.485, 0.456, 0.406],
                                           std=[0.229, 0.224, 0.225])])
+
+'''
+Sample Mean and Std in (r,g,b) from validation set
+    mean: 0.119743854 0.12807578 0.23815322
+    std: 0.113375455 0.112062685 0.22721237
+Could increase accuracy
+'''
 
 CLASSDICT = {
     'species': 31,
@@ -74,7 +89,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs, dataloaders,
     # Sluggish factor is indicating how many rounds the loss doesn't improved
     sluggish = 0
     timelist=[]
-    for epoch in range(1,num_epochs+1):
+    for epoch in range(1, num_epochs+1):
         epochsince = time.time()
         print('Epoch {}/{}'.format(epoch, num_epochs))
         print('-' * 10)
@@ -90,7 +105,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs, dataloaders,
             running_corrects = 0
 
             # Iterate over data.
-            for inputs, labels, _ in dataloaders[phase]:
+            for inputs, labels, _ in tqdm(dataloaders[phase]):
                 inputs = inputs.to(device)
                 labels = labels.to(device)
 
@@ -113,7 +128,8 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs, dataloaders,
                 running_loss += loss.item() * inputs.size(0)
                 running_corrects += torch.sum(preds == labels.data)
                 cnt += 1
-                print("", end=f"\rCompleted: {cnt} Batches")
+                if cnt % 10 == 0:
+                    print("", end=f"\rCompleted: {cnt} Batches")
             if phase == 'train':
                 scheduler.step()
 
@@ -215,10 +231,8 @@ def tune_train(config, model, target):
 
 
 def test_model(model, pre_trained_path, target):
-    device = torch.device('cpu')
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model.load_state_dict(torch.load(pre_trained_path, map_location=torch.device(device)))
-    num_ftrs = model.fc.in_features
-    model.fc = torch.nn.Linear(num_ftrs, CLASSDICT[target])
     model = model.to(device)
     test_data, data_size = load_data('train', target, data_transforms)
     verify_model(model, test_data, device, target, data_size)
