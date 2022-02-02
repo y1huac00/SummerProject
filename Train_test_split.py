@@ -23,7 +23,7 @@ def split_data(X,Y, test_ratio=0.2, val_ratio=0.1):
     return X_train, Y_train, X_val, Y_val, X_test, Y_test
 
 def write_splitted_data(X,Y,trg_dir):
-    with open(trg_dir,'w',encoding='ascii') as f_out:
+    with open(trg_dir,'w',encoding='ascii',newline='') as f_out:
         writer = csv.writer(f_out)
         for x,y in zip(X,Y):
             row = []

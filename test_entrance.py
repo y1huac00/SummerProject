@@ -9,7 +9,7 @@ from torchvision import models
     2. Decode the model
     3. Doing classification and output the result
 '''
-MODEL_PATH = 'Models/0.8695_acc_species_resnet152.pth'
+MODEL_PATH = 'Models/1643726019_0.88_species_vgg16.pth'
 
 def determine_model(arg_model, arg_pretrain, arg_classes):
     if arg_model.lower() == 'resnet18':
