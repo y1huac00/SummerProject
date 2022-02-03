@@ -9,7 +9,7 @@ from torchvision import models
     2. Decode the model
     3. Doing classification and output the result
 '''
-MODEL_PATH = 'Models/1643726019_0.88_species_vgg16.pth'
+MODEL_PATH = 'Models/1643870074_0.89_species_vgg19.pth'
 
 def determine_model(arg_model, arg_pretrain, arg_classes):
     if arg_model.lower() == 'resnet18':
@@ -30,6 +30,9 @@ def determine_model(arg_model, arg_pretrain, arg_classes):
         model.fc = torch.nn.Linear(num_ftrs, arg_classes)
     elif arg_model.lower() == 'vgg16':
         model = models.vgg16(pretrained=arg_pretrain)
+        model.classifier[6] = torch.nn.Linear(in_features=4096, out_features=arg_classes)
+    elif arg_model.lower() == 'vgg19':
+        model = models.vgg19(pretrained=arg_pretrain)
         model.classifier[6] = torch.nn.Linear(in_features=4096, out_features=arg_classes)
     else:
         model = models.resnet50(pretrained=arg_pretrain)

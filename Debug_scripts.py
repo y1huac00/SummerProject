@@ -21,5 +21,7 @@ def extract_error_images(error_log):
     csvreader = csv.reader(errors)
     for row in csvreader:
         src = data_path + row[1] + '/images/' + row[0]
-        dst = './tmp/' + row[1]
+        dst = '../tmp/' + row[0]
         shutil.copy(src, dst)
+
+extract_error_images(error_log)

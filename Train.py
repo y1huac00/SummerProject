@@ -234,7 +234,7 @@ def test_model(model, pre_trained_path, target):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model.load_state_dict(torch.load(pre_trained_path, map_location=torch.device(device)))
     model = model.to(device)
-    test_data, data_size = load_data('train', target, data_transforms)
+    test_data, data_size = load_data('test', target, data_transforms)
     verify_model(model, test_data, device, target, data_size)
 
 

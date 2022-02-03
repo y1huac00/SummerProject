@@ -131,7 +131,7 @@ def result_visualization(img_path):
     return 0
 
 
-plot_prediction('./Results/1643780029species_result_resnet50.csv')
+#plot_prediction('./Results/1643780029species_result_resnet50.csv')
 
 # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # model = models.resnet152(pretrained=True)
