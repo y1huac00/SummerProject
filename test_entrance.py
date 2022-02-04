@@ -9,7 +9,8 @@ from torchvision import models
     2. Decode the model
     3. Doing classification and output the result
 '''
-MODEL_PATH = 'Models/1643870074_0.89_species_vgg19.pth'
+MODEL_BASE = 'Models/'
+MODEL_PATH = '1643959020_0.95_genus_resnet50.pth'
 
 def determine_model(arg_model, arg_pretrain, arg_classes):
     if arg_model.lower() == 'resnet18':
@@ -43,7 +44,7 @@ def determine_model(arg_model, arg_pretrain, arg_classes):
 parser = argparse.ArgumentParser()
 parser.add_argument("--model_path",
                     type=str,
-                    default=MODEL_PATH,
+                    default=MODEL_BASE+MODEL_PATH,
                     help="Model path for your classification task.")
 parser.add_argument("--pretrained",
                     type=bool,
@@ -57,4 +58,5 @@ args = parser.parse_args()
 model_info = args.model_path.split('_')[-1].split('.')[0]
 model = determine_model(model_info, args.pretrained, args.classes)
 target = args.model_path.split('_')[-2]
-test_model(model, args.model_path, target)
+model_dir = MODEL_BASE+args.model_path
+test_model(model, model_dir, target)

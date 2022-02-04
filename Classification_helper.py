@@ -114,6 +114,7 @@ def plot_prediction(test_file):
     cm = confusion_matrix(y_pred, y_real)
     df_cm = pd.DataFrame(cm, index=classes,
                          columns=classes)
+    df_cm.to_csv('.'+test_file.split('/')[-1].split('.')[-2]+'_cm.csv')
     plt.figure()
     sn.heatmap(df_cm, annot=True)
     plt.show()
@@ -131,7 +132,7 @@ def result_visualization(img_path):
     return 0
 
 
-#plot_prediction('./Results/1643780029species_result_resnet50.csv')
+#plot_prediction('./Results/1643863508species_result_0.88_resnet152.csv')
 
 # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # model = models.resnet152(pretrained=True)

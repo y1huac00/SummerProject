@@ -33,7 +33,7 @@ Could increase accuracy
 
 CLASSDICT = {
     'species': 31,
-    'genues': 16
+    'genus': 15
 }
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
