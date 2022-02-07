@@ -44,7 +44,7 @@ def extract_class_label(target):
 
 
 # Classify image and write the results into
-def verify_model(model, test_loader, device, target, data_size):
+def verify_model(model, test_loader, device, target, data_size, model_name):
     """
     Get the classified label of each image. Return a classification results csv file in the Results Directory.
     :param model: A pre-trained CNN model.
@@ -55,7 +55,7 @@ def verify_model(model, test_loader, device, target, data_size):
     :return: Accuracy of the classification, float.
     """
     since = time.time()
-    outfile = './Results/' + str(int(since)) + target + '_result.csv'
+    outfile = './Results/' + str(int(since)) + '_' + target + '_' + model_name + '_result.csv'
     class_dict = get_class_meaning(target)
     running_corrects = 0
     all_labels =[]

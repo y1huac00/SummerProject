@@ -59,4 +59,4 @@ model_info = args.model_path.split('_')[-1].split('.')[0]
 model = determine_model(model_info, args.pretrained, args.classes)
 target = args.model_path.split('_')[-2]
 model_dir = MODEL_BASE+args.model_path
-test_model(model, model_dir, target)
+test_model(model, model_dir, target, model_info)

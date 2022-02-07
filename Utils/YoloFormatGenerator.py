@@ -25,31 +25,33 @@ def CreateTrays(len, n):
 
 if __name__ == '__main__':
     image_path = '../Plaindata/'
-    ref_path = '../Species.csv'
-    out_labels = '../YoloImages/Labels/Train/'
-    out_images = '../YoloImages/Images/Train/'
-    imgs = []
-    classes = []
-    batch: int = 9
-    with open(ref_path, 'r', encoding='ascii', errors='ignore') as f_in:
-        csv_reader = csv.reader(f_in, delimiter=',')
-        for row in csv_reader:
-            imgs.append(os.path.join(image_path, row[0]))
-            classes.append(row[1])
-    f_in.close()
-    ctr = len(classes) #controlling factor for testing
-    trays = CreateTrays(ctr, batch)
-    for t in range(0, ctr):
-        img_batch = []
-        class_batch = []
-        for q in range(0, batch):
-            img_batch.append(imgs[trays[q][t]])
-            class_batch.append(classes[trays[q][t]])
-        yolo_img, yolo_roi = GenerateDummy(img_batch)
-        yolo_img.save(out_images+'yolo_' + str(t) + '.jpg', quality=100)
-        with open(out_labels + 'yolo_' + str(t) + '.txt', 'w', encoding='ascii', errors='ignore') as f_out:
-            for roi, cls in zip(yolo_roi,class_batch):
-                roi_str = str(cls)+' '+' '.join(str(r) for r in roi)
-                f_out.write(roi_str)
-                f_out.write('\n')
-        f_out.close()
+    phases = ['train', 'val', 'test']
+    for phase in phases:
+        ref_path = '../Metadata/Species_' + phase + '.csv'
+        out_labels = '../YoloImages/Labels/' + phase + '/'
+        out_images = '../YoloImages/Images/' + phase + '/'
+        imgs = []
+        classes = []
+        batch: int = 9
+        with open(ref_path, 'r', encoding='ascii', errors='ignore') as f_in:
+            csv_reader = csv.reader(f_in, delimiter=',')
+            for row in csv_reader:
+                imgs.append(os.path.join(image_path, row[0]))
+                classes.append(row[1])
+        f_in.close()
+        ctr = len(classes)  # controlling factor for debug limiting how may images are cropped
+        trays = CreateTrays(ctr, batch)
+        for t in range(0, ctr):
+            img_batch = []
+            class_batch = []
+            for q in range(0, batch):
+                img_batch.append(imgs[trays[q][t]])
+                class_batch.append(classes[trays[q][t]])
+            yolo_img, yolo_roi = GenerateDummy(img_batch)
+            yolo_img.save(out_images+'yolo_' + phase + '_' + str(t) + '.jpg', quality=100)
+            with open(out_labels + 'yolo_' + phase + '_' + str(t) + '.txt', 'w', encoding='ascii', errors='ignore') as f_out:
+                for roi, cls in zip(yolo_roi, class_batch):
+                    roi_str = str(cls)+' '+' '.join(str(r) for r in roi)
+                    f_out.write(roi_str)
+                    f_out.write('\n')
+            f_out.close()
