@@ -55,7 +55,7 @@ def verify_model(model, test_loader, device, target, data_size, model_name):
     :return: Accuracy of the classification, float.
     """
     since = time.time()
-    outfile = './Results/' + str(int(since)) + '_' + target + '_' + model_name + '_result.csv'
+
     class_dict = get_class_meaning(target)
     running_corrects = 0
     all_labels =[]
@@ -77,6 +77,7 @@ def verify_model(model, test_loader, device, target, data_size, model_name):
             running_corrects += torch.sum(predictions == labels.data)
 
     # Horrible efficiency
+    outfile = './Results/' + str(int(since)) + '_' + target + '_' + model_name + '_result.csv'
     all_predictions = all_predictions
     with open(outfile, 'a', encoding='ascii', errors='ignore', newline='') as f_guide:
         writer = csv.writer(f_guide)
@@ -96,7 +97,7 @@ def verify_model(model, test_loader, device, target, data_size, model_name):
     return accu
 
 
-def plot_prediction(test_file):
+def plot_prediction(test_file, target = 'species',show_plot = True):
     """
     This function is visualizing confusion matrix of classification result.
     :param test_file: the file containing the classification result of tested model. It is expected to be a output from
@@ -110,14 +111,15 @@ def plot_prediction(test_file):
         if y1 == y2:
             accCount += 1
     print(accCount / len(y_pred))
-    classes = extract_class_label('species')
+    classes = extract_class_label(target)
     cm = confusion_matrix(y_pred, y_real)
     df_cm = pd.DataFrame(cm, index=classes,
                          columns=classes)
-    df_cm.to_csv('.'+test_file.split('/')[-1].split('.')[-2]+'_cm.csv')
-    plt.figure()
-    sn.heatmap(df_cm, annot=True)
-    plt.show()
+    df_cm.to_csv(test_file.split('.csv')[0]+'_cm.csv')
+    if show_plot == True:
+        plt.figure()
+        sn.heatmap(df_cm, annot=True)
+        plt.show()
 
 
 def result_visualization(img_path):
