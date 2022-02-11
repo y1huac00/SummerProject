@@ -81,7 +81,7 @@ def ROICaculation(w, h, x, y, w_b, h_b):
     return roi_x, roi_y, roi_w, roi_h
 
 
-def GenerateDummy(images, bkgi=0, loc=0):
+def GenerateDummy(images, bkgi=0, loc=0, pred=[]):
     '''
     :param loc: Locating indicator for location functions
     :param bkg: background generating function
@@ -115,6 +115,7 @@ def GenerateDummy(images, bkgi=0, loc=0):
                 bkg.paste(img_array[cnt], (centerX, centerY))
                 # Debug only: Print image path on the image to find bug
                 # ImageDraw.Draw(bkg).text((centerX, centerY), images[cnt], (255, 255, 255))
+                # ImageDraw.Draw(bkg).text((centerX, centerY), pred[cnt], (255, 255, 255))
                 roi.append((ROICaculation(wi, hi, centerX, centerY, w_b, h_b)))
                 cnt += 1
                 if cnt >= mv:
@@ -127,13 +128,18 @@ def GenerateDummy(images, bkgi=0, loc=0):
 def TestFunc():
     ''' Just test'''
     image_path = ('../Plaindata/')
-    ref_path = ('../Species.csv')
+    ref_path = ('../Results/1625212258species_result.csv')
     imgs = []
+    tags_pred = []
     with open(ref_path, 'r', encoding='ascii', errors='ignore') as f_in:
         csv_reader = csv.reader(f_in, delimiter=',')
         for i in range(0, 9):
             row = next(csv_reader)
-            imgs.append(os.path.join(image_path, row[0]))
+            #imgs.append(os.path.join(image_path, row[0]))
+            imgs.append('.'+row[0])
+            tags_pred.append(row[1])
     f_in.close()
-    res, _ = GenerateDummy(imgs)
+    res, _ = GenerateDummy(imgs,0,0,tags_pred)
     res.save('result.jpg', quality=100)
+
+# TestFunc()
