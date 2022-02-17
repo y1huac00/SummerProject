@@ -1,5 +1,7 @@
 import csv
 import shutil
+import autogluon.core as ag
+from autogluon.vision import ImageDataset, ImagePredictor
 
 '''
 The file is intended to include some debug only functions to fix ad-hoc errors
@@ -24,4 +26,9 @@ def extract_error_images(error_log):
         dst = '../tmp/' + row[0]
         shutil.copy(src, dst)
 
-extract_error_images(error_log)
+def test_autogluon():
+    model_list = ImagePredictor.list_models()
+    print(model_list)
+
+test_autogluon()
+#extract_error_images(error_log)

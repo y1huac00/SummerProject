@@ -94,6 +94,10 @@ def determine_model(arg_model, arg_pretrain, arg_classes):
     elif arg_model.lower() == 'vgg19':
         model = models.vgg19(pretrained=arg_pretrain)
         model.classifier[6] = torch.nn.Linear(in_features=4096, out_features=arg_classes)
+    elif arg_model.lower() == 'efficientnet':
+        model = models.efficientnet_b7(pretrained=arg_pretrain)
+        num_ftrs = model.fc.in_features
+        model.fc = torch.nn.Linear(num_ftrs, arg_classes)
     else:
         model = models.resnet50(pretrained=arg_pretrain)
         num_ftrs = model.fc.in_features
