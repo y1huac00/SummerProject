@@ -24,12 +24,10 @@ Name the file Data.zip and un-zip it directly, you will get all images under str
 
 ## Pre-trained model
 Resnet 152 with 86.95% top 1 validation accurancy: https://1drv.ms/u/s!Avhb6zEgsVg1naFz-XupQWBVyNt2yQ?e=KwnKv7
-<<<<<<< HEAD
+
 |pretrained model|class|train accuracy|val accuracy|test acccuracy|n_epochs|criterion|optimizer|learning rate|momentum|scheduler|step size|gamma|link|
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-|resnet152|species|/|/|91%|25|CrossEntropyLoss|SGD|0.001|0.9|StepLR|5|0.1|https://connecthkuhk-my.sharepoint.com/:u:/g/personal/yihuac_connect_hku_hk/ETzF8jD3d6RDo_Cot215fuoBfT1JVAD3ZoUwchDhobvLTw?e=4R0tRa|
-|vgg16|species|/|88%|88%|25|CrossEntropyLoss|SGD|0.001|0.9|StepLR|5|0.1|https://drive.google.com/file/d/1fntYLBz5-c94LbWyZ-Dv4hTSLA20EUdP/view?usp=sharing|
+|resnet152|species|99.99%|90.97%|91%|25|CrossEntropyLoss|SGD|0.001|0.9|StepLR|5|0.1|https://connecthkuhk-my.sharepoint.com/:u:/g/personal/yihuac_connect_hku_hk/ETzF8jD3d6RDo_Cot215fuoBfT1JVAD3ZoUwchDhobvLTw?e=4R0tRa|
+|vgg16|species|99.56%|88%|88%|25|CrossEntropyLoss|SGD|0.001|0.9|StepLR|5|0.1|https://drive.google.com/file/d/1fntYLBz5-c94LbWyZ-Dv4hTSLA20EUdP/view?usp=sharing|
 |resnet152|genus|99.98%|95.44%|95.7%|20|CrossEntropyLoss|SGD|0.001|0.9|StepLR|5|0.5|https://drive.google.com/file/d/1dFaZgYShIg8q9f4izycdp3bFM-un8H_n/view?usp=sharing|
 |vgg16|genus|99.7%|93%|93%|25|CrossEntropyLoss|SGD|0.001|0.9|StepLR|5|0.1|https://drive.google.com/file/d/1SIyBLgVx6VGCuhUhGOqcRJ0-nOmB7tYb/view?usp=sharing|
-=======
->>>>>>> parent of a8f9790 (add a table)

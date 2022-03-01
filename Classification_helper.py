@@ -10,9 +10,8 @@ from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from matplotlib import pyplot as plt
 import seaborn as sn
 
-PATH = './Models/0.8695_acc.pth'
+PATH = './Models/0.91_acc.pth'
 
-PATH = './Models/1624584327.542929.pth'
 ''' This is the script for saving model and classification result: '''
 ''' Functions to be implemented:
     1. A validation function to test accuracy on the test dataset
@@ -63,7 +62,7 @@ def verify_model(model, test_loader, device, target, data_size):
     class_dict = get_class_meaning(target)
     with torch.no_grad():
         # iterate over batch
-        for images, labels, paths in tqdm(test_loader):
+        for images, labels, paths in test_loader:
             images = images.to(device)
             labels = labels.to(device)
             outputs = model(images)
@@ -112,15 +111,19 @@ def plot_prediction(test_file):
     plt.show()
 
 
-def result_visualization():
+def result_visualization(img_path):
     """
-    Visualizing
-    :return:
+    Visualizing classification results: intended function:
+    1. Visualizing classification result by image path （one at a time）
+    2. Visualizing a group of images by list of image path
+    3. Visualizing random 9 images.
+    :return: graph showing image and classification results.
     """
+
     return 0
 
 
-#plot_prediction('./Results/1625212258species_result.csv')
+plot_prediction('./Results/1626328210species_result.csv')
 
 # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # model = models.resnet152(pretrained=True)
