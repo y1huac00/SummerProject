@@ -121,7 +121,7 @@ def label_species(in_path, out_path, guide_path, treshold=20):
 
 if __name__ == '__main__':
     treshold = 20
-    # classes = load_csv('input.csv', 'output.csv', './Plaindata')
-    # print(classes)
-    # label_genus('input.csv', 'genus.csv', 'genus_guide.csv')
-    # label_species('input.csv', 'species.csv', 'species_guide.csv')
+    classes = load_csv('input.csv', 'output.csv', './Plaindata')
+    print(classes)
+    label_genus('input.csv', 'genus.csv', 'genus_guide.csv')
+    label_species('input.csv', 'species.csv', 'species_guide.csv')

@@ -3,30 +3,19 @@ import pandas as pd
 import torch
 import time
 import copy
-import numpy as np
-import tqdm
-from functools import partial
-from torchvision.io import read_image
 from torch.utils.data import Dataset
-from torchvision import datasets, transforms, models
-from torchvision.transforms import ToTensor
+from torchvision import transforms
 from torch.utils.data import DataLoader
 from PIL import Image
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
-from ray import tune
-from ray.tune import CLIReporter
-from ray.tune.schedulers import ASHAScheduler
 from Classification_helper import verify_model
-import pandas as pd
+from tqdm import tqdm
 
-config = {
-    "lr": tune.loguniform(1e-5, 1e-1),
-    "batch_size": tune.grid_search([16, 32, 64, 112]),
-    "step_size": tune.uniform(3,8),
-    "gamma":tune.grid_search([0.01,0.05,0.1,0.2,0.5]),
-    "momentum":tune.grid_search([0.5,0.6,0.7,0.8,0.9])
-}
+# data_transforms = transforms.Compose([transforms.Resize([512, 512]),
+#                                       transforms.CenterCrop([448, 448]),
+#                                       transforms.ToTensor(),
+#                                       transforms.Normalize(
+#                                           mean=[0.12, 0.128, 0.238],
+#                                           std=[0.113, 0.112, 0.227])])
 
 data_transforms = transforms.Compose([transforms.Resize([256, 256]),
                                       transforms.CenterCrop([224, 224]),
@@ -34,6 +23,13 @@ data_transforms = transforms.Compose([transforms.Resize([256, 256]),
                                       transforms.Normalize(
                                           mean=[0.485, 0.456, 0.406],
                                           std=[0.229, 0.224, 0.225])])
+
+'''
+Sample Mean and Std in (r,g,b) from validation set
+    mean: 0.119743854 0.12807578 0.23815322
+    std: 0.113375455 0.112062685 0.22721237
+Could increase accuracy
+'''
 
 CLASSDICT = {
     'species': 31,
@@ -93,7 +89,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs, dataloaders,
     # Sluggish factor is indicating how many rounds the loss doesn't improved
     sluggish = 0
     timelist=[]
-    for epoch in range(1,num_epochs+1):
+    for epoch in range(1, num_epochs+1):
         epochsince = time.time()
         print('Epoch {}/{}'.format(epoch, num_epochs))
         print('-' * 10)
@@ -109,7 +105,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs, dataloaders,
             running_corrects = 0
 
             # Iterate over data.
-            for inputs, labels, _ in dataloaders[phase]:
+            for inputs, labels, _ in tqdm(dataloaders[phase]):
                 inputs = inputs.to(device)
                 labels = labels.to(device)
 
@@ -132,8 +128,8 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs, dataloaders,
                 running_loss += loss.item() * inputs.size(0)
                 running_corrects += torch.sum(preds == labels.data)
                 cnt += 1
-                if cnt % 100 == 0:
-                    print('finished ', cnt, ' batches')
+                if cnt % 10 == 0:
+                    print("", end=f"\rCompleted: {cnt} Batches")
             if phase == 'train':
                 scheduler.step()
 
@@ -142,6 +138,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs, dataloaders,
             if epoch_loss < best_loss:
                 best_loss = epoch_loss
                 sluggish = 0
+            sluggish += 1
             # if phase == 'train':
             #     trainloss.append(epoch_loss)
             # else:
@@ -156,13 +153,9 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs, dataloaders,
                 if epoch_acc > best_acc:
                     best_acc = epoch_acc
                     best_model_wts = copy.deepcopy(model.state_dict())
-        # To be modified. Train doesn't improve for three rounds means that the best loss is not reduced for three rounds.
-        # if epoch > 3:
-        #     if (trainloss[-3] < trainloss[-2] < trainloss[-1]) and (valloss[-3] < valloss[-2] < valloss[-1]):
-        #         print('Train loss has increased over 3 epochs. Break.')
-        #         break
+
         if sluggish >= 3:
-            print('Best train loss did not decreased over 3 epochs. Break.')
+            print('Best train loss did not improved over 3 epochs. Break.')
             break
 
         timelist.append(time.time()-epochsince)
@@ -179,15 +172,14 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs, dataloaders,
     print('Best val Acc: {:4f}'.format(best_acc))
 
     # load best model weights
-    if best_acc >= 0.75:
-        model.load_state_dict(best_model_wts)
-        model_save_path = PATH+str(time.time())+'_'+str(best_acc)+'.pth'
-        torch.save(model.state_dict(), model_save_path)
-    return model
+    model.load_state_dict(best_model_wts)
+    model_save_path = PATH+str(int(time.time()))+'_'+str(best_acc.cpu().data.numpy().round(decimals=2))
+    #torch.save(model.state_dict(), model_save_path)
+    return model, model_save_path
 
 
 # Load train, test and validation data by phase. Phase = train, val and test. Target = genus and species
-def load_data(phase, target, d_transfroms=data_transforms, batch_size=16):
+def load_data(phase, target, d_transfroms, batch_size=16):
     data_path = './Metadata/' + target + '_' + phase + '.csv'
     src_path = './Plaindata'
     data_out = CustomImageDataset(data_path, src_path, d_transfroms)
@@ -196,21 +188,27 @@ def load_data(phase, target, d_transfroms=data_transforms, batch_size=16):
     return data_loader, data_size
 
 """----------------------------------to be modified----------------------------------"""
-def std_call_train(config, model, checkpoint_dir=None, data_dir=None):
+'''
+    std_call_train included the standard testing interface for the model for test only.
+    The default model is resnet18 and batch_size is 96.
+    The default settings is only acceptable for running for testing in new environment.
+'''
+def std_call_train(model, batch_size = 96):
     os.chdir(DEFAULTWD)
     num_ftrs = model.fc.in_features
     model.fc = torch.nn.Linear(num_ftrs, 31)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = model.to(device)
-    batch_size = config['batch_size']
-    dataloaders, dataset_sizes = [{},{}]
-    dataloaders['train'], dataset_sizes['train'] = load_data('train', target='species', d_transfroms=data_transforms, batch_size=15)
-    dataloaders['val'], dataset_sizes['val'] = load_data('val', target='species', d_transfroms=data_transforms, batch_size=15)
-    optimizer_ft = torch.optim.SGD(model.parameters(), lr=config["lr"], momentum=config['momentum'])
+    dataloaders, dataset_sizes = [{}, {}]
+    dataloaders['train'], dataset_sizes['train'] = load_data('train', target='species',
+                                                             d_transfroms=data_transforms, batch_size=batch_size)
+    dataloaders['val'], dataset_sizes['val'] = load_data('val', target='species',
+                                                         d_transfroms=data_transforms, batch_size=batch_size)
+    optimizer_ft = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
     exp_lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
     criterion = torch.nn.CrossEntropyLoss()
     model_ft = train_model(model, criterion, optimizer_ft,
-                          exp_lr_scheduler, num_epochs=25)
+                          exp_lr_scheduler, num_epochs=25,dataloaders=dataloaders,dataset_sizes=dataset_sizes,device=device)
     return model_ft
 
 def single_train(model, target, batch_size, n_epochs, criterion, optimizer, scheduler):
@@ -232,29 +230,15 @@ def tune_train(config, model, target):
     model = model.to(device)
 
 
+def test_model(model, pre_trained_path, target, model_name):
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    model.load_state_dict(torch.load(pre_trained_path, map_location=torch.device(device)))
+    model = model.to(device)
+    test_data, data_size = load_data('test', target, data_transforms)
+    verify_model(model, test_data, device, target, data_size, model_name)
 
-def test_model(model, pre_trained_path, data, data_size, device, target):
-    num_ftrs = model.fc.in_features
-    model.fc = torch.nn.Linear(num_ftrs, CLASSDICT[target])
-    model.load_state_dict(torch.load(pre_trained_path))
-    model.to(device)
-    model.eval()
-    verify_model(model, data, device, target, data_size)
 
-def view_error(path):
-    df = pd.read_csv(path)
-    errorlist = list(df.path)
-    rows = round(len(errorlist) / 4)
-    cols = 4
-    fig = plt.figure(figsize=(7,7))
-    for i, t in enumerate(errorlist):
-        img = mpimg.imread(t)
-        fig.add_subplot(rows,cols,i+1)
-        plt.imshow(img)
+def loading_data():
+    return 0
 
-    plt.show()
-
-# data_loader, _ = load_data('test','genus',data_transforms,15)
-# accu = test_model(model=models.resnet152(pretrained=True), pre_trained_path='./Models/resnet152 1626338180.8582935.pth', data=data_loader, data_size=2770, device='cuda', target='genus')
-# print(accu)
 

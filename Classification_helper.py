@@ -1,14 +1,11 @@
-import os
-import numpy as np
 import pandas as pd
 import time
 import torch
 import csv
-from torchvision import transforms, models
-import tqdm
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from matplotlib import pyplot as plt
 import seaborn as sn
+from tqdm import tqdm
 
 PATH = './Models/0.91_acc.pth'
 
@@ -47,10 +44,10 @@ def extract_class_label(target):
 
 
 # Classify image and write the results into
-def verify_model(model, test_loader, device, target, data_size):
+def verify_model(model, test_loader, device, target, data_size, model_name):
     """
     Get the classified label of each image. Return a classification results csv file in the Results Directory.
-    :param model: A trained CNN model.
+    :param model: A pre-trained CNN model.
     :param test_loader: An instance of Data_loader class. Defines the source of image.
     :param device: Cpu or cuda.
     :param target: Species or genus.
@@ -58,37 +55,49 @@ def verify_model(model, test_loader, device, target, data_size):
     :return: Accuracy of the classification, float.
     """
     since = time.time()
-    outfile = './Results/' + str(int(since)) + target + '_result.csv'
+
     class_dict = get_class_meaning(target)
+    running_corrects = 0
+    all_labels =[]
+    all_paths = []
+    all_predictions = []
     with torch.no_grad():
         # iterate over batch
-        for images, labels, paths in test_loader:
+        for images, labels, paths in tqdm(test_loader):
+            all_paths.append(paths)
+            all_labels.append(labels)
+
             images = images.to(device)
             labels = labels.to(device)
             outputs = model(images)
             _, predictions = torch.max(outputs, 1)
+            all_predictions.append(predictions)
             # collect the correct predictions for each class
-            running_corrects = 0
+
             running_corrects += torch.sum(predictions == labels.data)
 
-            with open(outfile, 'a', encoding='ascii', errors='ignore') as f_guide:
-                writer = csv.writer(f_guide)
-                for label, prediction, path in zip(labels, predictions, paths):
-                    row = [path]
-                    label = int(label.numpy())
-                    label_t = class_dict[label]
-                    row.append(label_t)
-                    prediction = int(prediction.numpy())
-                    pred_t = class_dict[prediction]
-                    row.append(pred_t)
-                    writer.writerow(row)
-        f_guide.close()
+    # Horrible efficiency
+    outfile = './Results/' + str(int(since)) + '_' + target + '_' + model_name + '_result.csv'
+    all_predictions = all_predictions
+    with open(outfile, 'a', encoding='ascii', errors='ignore', newline='') as f_guide:
+        writer = csv.writer(f_guide)
+        for label_batch, prediction_batch, path_batch in zip(all_labels, all_predictions, all_paths):
+            for label, prediction, path in zip(label_batch, prediction_batch, path_batch):
+                row = [path]
+                label = int(label.numpy())
+                label_t = class_dict[label]
+                row.append(label_t)
+                prediction = int(prediction.cpu().data.numpy())
+                pred_t = class_dict[prediction]
+                row.append(pred_t)
+                writer.writerow(row)
+    f_guide.close()
     accu = running_corrects.double() / data_size
     print('Current test Acc: {:4f}'.format(accu))
     return accu
 
 
-def plot_prediction(test_file):
+def plot_prediction(test_file, target = 'species',show_plot = True):
     """
     This function is visualizing confusion matrix of classification result.
     :param test_file: the file containing the classification result of tested model. It is expected to be a output from
@@ -102,13 +111,15 @@ def plot_prediction(test_file):
         if y1 == y2:
             accCount += 1
     print(accCount / len(y_pred))
-    classes = extract_class_label('species')
+    classes = extract_class_label(target)
     cm = confusion_matrix(y_pred, y_real)
     df_cm = pd.DataFrame(cm, index=classes,
                          columns=classes)
-    plt.figure(figsize=(14, 8))
-    sn.heatmap(df_cm, annot=True)
-    plt.show()
+    df_cm.to_csv(test_file.split('.csv')[0]+'_cm.csv')
+    if show_plot == True:
+        plt.figure()
+        sn.heatmap(df_cm, annot=True)
+        plt.show()
 
 
 def result_visualization(img_path):
@@ -123,7 +134,7 @@ def result_visualization(img_path):
     return 0
 
 
-plot_prediction('./Results/1626328210species_result.csv')
+#plot_prediction('./Results/1643863508species_result_0.88_resnet152.csv')
 
 # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # model = models.resnet152(pretrained=True)
