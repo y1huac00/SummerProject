@@ -17,7 +17,7 @@ from tqdm import tqdm
 #                                           mean=[0.12, 0.128, 0.238],
 #                                           std=[0.113, 0.112, 0.227])])
 
-data_transforms = transforms.Compose([transforms.Resize([256, 256]),
+data_transforms = transforms.Compose([transforms.Resize([224, 224]),
                                       transforms.CenterCrop([224, 224]),
                                       transforms.ToTensor(),
                                       transforms.Normalize(
