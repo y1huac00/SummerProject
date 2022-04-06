@@ -17,7 +17,7 @@ from tqdm import tqdm
 #                                           mean=[0.12, 0.128, 0.238],
 #                                           std=[0.113, 0.112, 0.227])])
 
-data_transforms = transforms.Compose([transforms.Resize([256, 256]),
+data_transforms = transforms.Compose([transforms.Resize([224, 224]),
                                       transforms.CenterCrop([224, 224]),
                                       transforms.ToTensor(),
                                       transforms.Normalize(
@@ -81,11 +81,10 @@ class CustomImageDataset(Dataset):
         return image, label, img_path
 
 
-def train_model(model, criterion, optimizer, scheduler, num_epochs, dataloaders, dataset_sizes, device):
+def train_model(model, criterion, optimizer, scheduler, num_epochs, dataloaders, dataset_sizes, device, tolerance=5):
     since = time.time()
     best_model_wts = copy.deepcopy(model.state_dict())
     best_acc = 0.0
-    best_loss = float('inf')
     # Sluggish factor is indicating how many rounds the loss doesn't improved
     sluggish = 0
     timelist=[]
@@ -135,10 +134,6 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs, dataloaders,
 
             epoch_loss = running_loss / dataset_sizes[phase]
             epoch_acc = running_corrects.double() / dataset_sizes[phase]
-            if epoch_loss < best_loss:
-                best_loss = epoch_loss
-                sluggish = 0
-            sluggish += 1
             # if phase == 'train':
             #     trainloss.append(epoch_loss)
             # else:
@@ -150,12 +145,14 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs, dataloaders,
             # deep copy the model
             if phase == 'val':
                 # tune.report(loss=epoch_loss, accuracy=epoch_acc)
+                sluggish += 1
                 if epoch_acc > best_acc:
                     best_acc = epoch_acc
                     best_model_wts = copy.deepcopy(model.state_dict())
+                    sluggish = 0
 
-        if sluggish >= 3:
-            print('Best train loss did not improved over 3 epochs. Break.')
+        if sluggish >= tolerance:
+            print(f'Best validation loss did not improved over {tolerance} epochs. Break.')
             break
 
         timelist.append(time.time()-epochsince)

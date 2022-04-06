@@ -44,12 +44,12 @@ def BKGGen(w_max, h_max, mp, ind=0):
     if ind == 0:
         return Image.new('RGB', (mp * w_max, mp * h_max), (0, 0, 0))
     elif ind == 1:
-        return Image.new('RGB', (mp * w_max, mp * h_max), (255, 255, 255))
+        return Image.new('RGB', (mp * w_max, mp * h_max), (255, 0, 255))
 
     return Image.new('RGB', (mp * w_max, mp * h_max), (0, 0, 0))
 
 
-def PasteFunc(imgs, bkg, ind=0):
+def PasteFunc(imgs, bkg, ind=1):
     """
     Extend here for more pasting methods
     :param imgs: Array of images for pasting
@@ -81,7 +81,7 @@ def ROICaculation(w, h, x, y, w_b, h_b):
     return roi_x, roi_y, roi_w, roi_h
 
 
-def GenerateDummy(images, bkgi=0, loc=0, pred=[]):
+def GenerateDummy(images, bkgi=1, loc=0, pred=[]):
     '''
     :param loc: Locating indicator for location functions
     :param bkg: background generating function
@@ -133,7 +133,7 @@ def TestFunc():
     tags_pred = []
     with open(ref_path, 'r', encoding='ascii', errors='ignore') as f_in:
         csv_reader = csv.reader(f_in, delimiter=',')
-        for i in range(0, 9):
+        for i in range(0, 14):
             row = next(csv_reader)
             #imgs.append(os.path.join(image_path, row[0]))
             imgs.append('.'+row[0])
@@ -142,4 +142,4 @@ def TestFunc():
     res, _ = GenerateDummy(imgs,0,0,tags_pred)
     res.save('result.jpg', quality=100)
 
-# TestFunc()
+TestFunc()
