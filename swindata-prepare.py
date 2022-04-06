@@ -24,10 +24,10 @@ def swindataset(path_metadata, path_plaindata, train, val, test, dst):
             shutil.copyfile(src=os.path.join(path_plaindata, img), dst=os.path.join(dst, f'{key}/', img))
             print(img)
 
-        shutil.make_archive(os.path.join(dst,key), 'zip', dst, key)
+        shutil.make_archive(os.path.join(dst,key), 'zip', os.path.join(dst,f'{key}/'))
         shutil.rmtree(os.path.join(dst,key))
 
-        dfs[key].to_csv(os.path.join(dst,f'{key}_map.txt'), header=None, index=None, sep=' ')
+        dfs[key].to_csv(os.path.join(dst,f'{key}_map.txt'), header=None, index=None, sep='\t')
 
 
 if __name__ == '__main__':
