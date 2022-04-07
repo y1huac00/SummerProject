@@ -92,6 +92,8 @@ metadata. Please refer to the following introductions.
 
 ## Strat training model
 
+#### To train a swin-transformer model, please refer to [how_to_train_swin.md](https://github.com/H-Jamieu/SummerProject/blob/master/how_to_train_swin.md)
+
 By default, Resnet 50 is select for training classification. Run following script to start training:
 
 ```
