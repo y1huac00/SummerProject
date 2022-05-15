@@ -149,3 +149,12 @@ Resnet 152 with 86.95% top 1 validation accuracy: https://1drv.ms/u/s!Avhb6zEgsV
 |vgg16|species|99.56%|88%|88%|25|CrossEntropyLoss|SGD|0.001|0.9|StepLR|5|0.1|https://drive.google.com/file/d/1fntYLBz5-c94LbWyZ-Dv4hTSLA20EUdP/view?usp=sharing|
 |resnet152|genus|99.98%|95.44%|95.7%|20|CrossEntropyLoss|SGD|0.001|0.9|StepLR|5|0.5|https://drive.google.com/file/d/1dFaZgYShIg8q9f4izycdp3bFM-un8H_n/view?usp=sharing|
 |vgg16|genus|99.7%|93%|93%|25|CrossEntropyLoss|SGD|0.001|0.9|StepLR|5|0.1|https://drive.google.com/file/d/1SIyBLgVx6VGCuhUhGOqcRJ0-nOmB7tYb/view?usp=sharing|
+
+Swin-Transformer
+|model|class|train:val:test|swin-config|n_epochs|accuracy@1|accuracy@5|link|
+|---|---|---|---|---|---|---|---|
+|Swin-Tiny|species|80:10:10|swin_tiny_patch4_window7_224|200|92.30%|99.037%|https://drive.google.com/file/d/1rK4cTDeI4bels_e-BmkBYsdjqSrjpJch/view?usp=sharing|
+|Swin-Small|species|80:10:10|swin_small_patch4_window7_224|100|92.26%|99.037%|https://drive.google.com/file/d/1PVjnn62b1uBFrTwgTGcyj_ysMRG2JrnW/view?usp=sharing|
+|Swin-Base|species|80:10:10|swin_base_patch4_window7_224|125|92.38%|99.037%|https://drive.google.com/file/d/1NlSr39V-FJ35RFc8kZN6X23lUl4ddHyM/view?usp=sharing|
+|Swin-Large|species|80:10:10|swin_large_patch4_window7_224_22kto1k_finetune|200|90.17%|99.037%|https://drive.google.com/file/d/1MaudEAKlbLVrKIgo0pjgMBbfBPP_0f0f/view?usp=sharing|
+                
