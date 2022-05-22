@@ -73,6 +73,13 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="\swindataset\val_map.txt">
+          <value>
+            <Attribute>
+              <option name="separator" value="&#9;" />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="\test.py">
           <value>
             <Attribute>
