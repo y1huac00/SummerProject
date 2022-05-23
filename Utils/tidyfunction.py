@@ -111,11 +111,8 @@ def findcontours(draw_img, preprocessed_img, lower, upper):
     print('length:', len(arealist))
     print('median:', arealist[round(len(arealist)/2)])
 
-if __name__ == '__main__':
-    # img = cv2.imread("D:/pythonproject/ostracod/test/HK14THL1C_104_105_50X.tif")
-    img = cv2.imread("D:/pythonproject/ostracod/test/HK14THL1C_136_137_50X.tif")
-
-    type = 'B'
+def solutionB(file, type): #single file for test
+    img = cv2.imread(file)
     rang = (20000, 30000) if type == 'A' else (25000, 40000)
 
     resized, preprocessed_img = preprocess(img, type)
@@ -126,5 +123,12 @@ if __name__ == '__main__':
     cv2.destroyAllWindows()
 
     # TODO: straighten every grid and crop
+
+if __name__ == '__main__':
+    sampleA = ('D:/pythonproject/ostracod/test/HK14THL1C_104_105_50X.tif', 'A')
+    sampleB = ('D:/pythonproject/ostracod/test/HK14THL1C_136_137_50X.tif', 'B')
+
+    solutionB(sampleB[0], sampleB[1])
+
 
 
