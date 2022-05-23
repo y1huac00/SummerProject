@@ -93,6 +93,9 @@ def sep_image(img_file, img_folder, thr_value=160, scale=32):
 
 if __name__=='__main__':
     img_folder = 'E:/HKU_Study/PhD/Lab_work/Keyence_Images'
+    # Solution A
     for file in files(img_folder):
         print(file)
         sep_image(file, img_folder, 160, 16)
+
+    # Solution B: Find a contour for each grid, and use a
