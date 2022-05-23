@@ -21,6 +21,7 @@ def read_and_down(file_path, down_factor=32):
     height = int(src.shape[0] // down_factor)
     dim = (width, height)
     dwn = cv2.resize(src, dim, interpolation=cv2.INTER_AREA)
+    #dwn = cv2.GaussianBlur(dwn, (3,3), 0)
     return src, dwn
 
 
