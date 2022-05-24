@@ -7,6 +7,7 @@ import math
 import cv2
 import numpy as np
 import os
+import functools
 
 
 def read_and_down(file_path, down_factor=32):
@@ -98,7 +99,8 @@ def rotate_image(mat, angle):
 
     height, width = mat.shape[:2]  # image shape has 3 dimensions
     image_center = (
-    width / 2, height / 2)  # getRotationMatrix2D needs coordinates in reverse order (width, height) compared to shape
+        width / 2,
+        height / 2)  # getRotationMatrix2D needs coordinates in reverse order (width, height) compared to shape
 
     rotation_mat = cv2.getRotationMatrix2D(image_center, angle, 1.)
 
@@ -160,7 +162,7 @@ def preprocess(img, type, pblurmedian, pthreshold, pdilate):
 
     elif type == 'B':
         resized = resize(img, 20)
-        resized = rotate_image(resized, 4)
+        # resized = rotate_image(resized, 4)
 
         gray = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
 
@@ -194,6 +196,7 @@ def findcontours(draw_img, preprocessed_img, lower, upper):
     contours, _ = cv2.findContours(preprocessed_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     arealist = []
     rectarealist = []
+    rectlist = []
     for i in contours:
         area = cv2.contourArea(i)
         # print(area)
@@ -207,6 +210,7 @@ def findcontours(draw_img, preprocessed_img, lower, upper):
             if ydiff * 0.5 < xdiff < ydiff * 1.5:
                 arealist.append(area)
                 rectarealist.append(cv2.contourArea(box))
+                rectlist.append(rect)
 
     arealist = sorted(arealist)
     rectarealist = sorted(rectarealist)
@@ -220,7 +224,7 @@ def findcontours(draw_img, preprocessed_img, lower, upper):
 
     # cv2.imshow("Contour", contour_img)
 
-    return (contours, rectarealist)
+    return (contours, rectarealist), rectlist
 
 
 def drawcontour(contours, draw_img, contour_img, lower, upper):
@@ -242,11 +246,14 @@ def drawcontour(contours, draw_img, contour_img, lower, upper):
 
 def evaluate(contourlist, paramslist):
     # print([np.var(np.array(i[1])) for i in contourlist if len(i[1]) == 60])
+    if 60 not in [len(i[1]) for i in contourlist]:
+        return False, 0
     minvar = min([np.var(np.array(i[1]) / np.linalg.norm(np.array(i[1]))) for i in contourlist if len(i[1]) == 60])
     # print(minvar)
     c = 0
     for contour in contourlist:
-        if len(contour[1]) == 60 and np.var(np.array(contour[1]) / np.linalg.norm(np.array(contour[1]))) == minvar:  # if grid detected is 60 and smallest var
+        if len(contour[1]) == 60 and np.var(np.array(contour[1]) / np.linalg.norm(
+                np.array(contour[1]))) == minvar:  # if grid detected is 60 and smallest var
             print(
                 f'Best params: blurmedian: {paramslist[c][0]}, threshold: {paramslist[c][1]}, dilate: {paramslist[c][2]}, with normalized variance {minvar}')
             return contour[0], c
@@ -255,57 +262,108 @@ def evaluate(contourlist, paramslist):
 
 
 def findbestcontours(img, rang, params, type):
-    contourslist = []
     best_contours = None
     # find contours in different params
     for blurmedian in params[type]['blurmedian']:
         for threshold in params[type]['threshold']:
+            contourslist = []
             contour_imglist = []
             resized = None
             paramslist = []
+            rectlistlist = []
 
             for dilate in params[type]['dilate']:
                 print(f'--- blurmedian: {blurmedian}, threshold: {threshold}, dilate: {dilate} ---')
                 resized, preprocessed_img = preprocess(img, type, blurmedian, threshold, dilate)
                 contour_img = cv2.cvtColor(preprocessed_img, cv2.COLOR_GRAY2RGB)
                 contour_imglist.append(contour_img)
-                contourslist.append(findcontours(resized, preprocessed_img, lower=rang[0], upper=rang[1]))
+                contourscandidate, rectlist = findcontours(resized, preprocessed_img, lower=rang[0], upper=rang[1])
+                contourslist.append(contourscandidate)
                 paramslist.append([blurmedian, threshold, dilate])
+                rectlistlist.append(rectlist)
 
             best_contours, c = evaluate(contourslist, paramslist)
             if best_contours is not False:
-                return best_contours, resized, contour_imglist[c]
+                return best_contours, resized, contour_imglist[c], rectlistlist[c]
 
-    return None, None, None
+    return None, None, None, None
 
 
-def straighten():
-    return 0
+def straighten(img, rectlist):
+    imgheight, imgwidth = img.shape[:2]  # image shape has 3 dimensions
+    image_center = (
+        imgwidth / 2,
+        imgheight / 2)  # getRotationMatrix2D needs coordinates in reverse order (width, height) compared to shape
+    anglelist = np.array([90 - i[2] if i[2] > 45 else i[2] for i in rectlist])
+    angle = 0 - np.average(anglelist)
+    print(anglelist, angle)
+
+    M = cv2.getRotationMatrix2D(image_center, angle, 1.0)
+    rotated_image = cv2.warpAffine(img, M, img.shape[1::-1], flags=cv2.INTER_LINEAR)
+
+    cv2.imshow('rotated', resize(rotated_image, 10))
+
+    return rotated_image, angle
+
+def crop(rotated_image, best_rectlist, type):
+    scale = 10 if type == 'A' else 5
+    def sort(a, b):
+        if 0.8 * b[0][1] < a[0][1] < 1.2 * b[0][1]:
+            if a[0][0] < b[0][0]:
+                return -1
+            else:
+                return 1
+        else:
+            return -1
+    best_rectlist = sorted(best_rectlist, key=functools.cmp_to_key(sort))
+    for index, rect in enumerate(best_rectlist):
+        center = (int(rect[0][0] * scale), int(rect[0][1] * scale))
+        width = int((rect[1][0]+3) * scale)
+        height = int((rect[1][1]+3) * scale)
+
+        cropped = cv2.getRectSubPix(
+            rotated_image, (height, width), center)
+
+        fs = f'D:/pythonproject/ostracod/test/testt/{index+1}.tif'
+        cv2.imwrite(fs, cropped)
+
 
 
 def solutionB(file, type):  # single file for test
     img = cv2.imread(file)
+    cv2.imshow('original image', resize(img, 10 if type == 'A' else 20))
     rang = (13000, 30000) if type == 'A' else (22000, 40000)
 
     params = {'A': {'blurmedian': [5, 7, 9], 'threshold': [150, 160, 170, 180], 'dilate': [3, 5, 6, 7, 8, 10]},
-              'B': {'blurmedian': [3, 5], 'threshold': [150, 160], 'dilate': [5, 6, 7, 8]}
+              'B': {'blurmedian': [3, 5], 'threshold': [150, 160], 'dilate': [3, 5, 6, 7, 8]}
               }
 
     # find best contours from different params (Current criteria: grids == 60 and minimum variance of rectangle area)
-    best_contours, resized, contour_img = findbestcontours(img, rang, params, type)
+    best_contours, resized, contour_img, best_rectlist = findbestcontours(img, rang, params, type)
     if best_contours is None:
         print('No 60 detected')
         return 6
     # draw best contours on the resized image
     drawcontour(best_contours, draw_img=resized, contour_img=contour_img, lower=rang[0], upper=rang[1])
 
+    rotated_image, angle = straighten(img, best_rectlist)
+
+    if abs(angle) < 0.3:
+        crop(img, best_rectlist, type)
+    else:
+        best_contours, resized, contour_img, best_rectlist = findbestcontours(rotated_image, rang, params, type)
+        if best_contours is None:
+            print('No 60 detected')
+            return 6
+        # draw best contours on the resized image
+        drawcontour(best_contours, draw_img=resized, contour_img=contour_img, lower=rang[0], upper=rang[1])
+        crop(rotated_image, best_rectlist, type)
+
     cv2.imshow("Final Image", resized)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-    # TODO: straighten every grid and crop from original image
     # TODO: modify SolutionA to work with straightened image
-    # TODO: save to files
     # TODO: SolutionB to every file in a given directory
 
 
