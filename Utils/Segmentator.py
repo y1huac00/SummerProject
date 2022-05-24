@@ -1,11 +1,5 @@
-"""
-@file hough_lines.py
-@brief This program demonstrates line finding with the Hough transform
-"""
-import sys
-import math
+
 import cv2
-import numpy as np
 import os
 
 
@@ -16,11 +10,12 @@ def read_and_down(file_path, down_factor=32):
     :param down_factor: the scale down factor for original image
     :return: src: original image; dwn: scaled image
     '''
-    src = cv2.imread(file_path, cv2.IMREAD_GRAYSCALE)
+    src = cv2.imread(file_path)
     width = int(src.shape[1] // down_factor)
     height = int(src.shape[0] // down_factor)
     dim = (width, height)
     dwn = cv2.resize(src, dim, interpolation=cv2.INTER_AREA)
+    dwn = cv2.cvtColor(dwn, cv2.COLOR_BGR2GRAY)
     #dwn = cv2.GaussianBlur(dwn, (3,3), 0)
     return src, dwn
 
@@ -53,6 +48,7 @@ def grid_crop(x_cand, y_cand, trgt, file_string, scale):
     m = len(x_cand)
     n = len(y_cand)
     sub_images = []
+    # error checking
     print(m*n)
     for y in range(0, n - 1, 2):
         for x in range(0, m - 1, 2):
@@ -72,6 +68,14 @@ def files(path):
 
 def sep_image(img_file, img_folder, thr_value=160, scale=32):
     img_root = ''.join(img_file.split(".")[:-1])
+
+    root_folder = os.path.join(img_folder, img_root)
+    if not os.path.exists(root_folder):
+        os.mkdir(root_folder)
+    # else:
+    #     # already cropped
+    #     return
+
     img, scaled = read_and_down(os.path.join(img_folder, img_file), scale)
 
     thr = cv2.threshold(scaled, thr_value, 255, cv2.THRESH_BINARY_INV)[1]
@@ -80,12 +84,6 @@ def sep_image(img_file, img_folder, thr_value=160, scale=32):
     cnd_x = clean_candidates(axis_candidate(w_proj), w_proj, 1)
     cnd_y = clean_candidates(axis_candidate(h_proj), h_proj, 0)
 
-    root_folder = os.path.join(img_folder, img_root)
-    if not os.path.exists(root_folder):
-        os.mkdir(root_folder)
-    # else:
-    #     # already cropped
-    #     return
     file_string = os.path.join(root_folder, (img_root+'_grid_'))
 
     grid_crop(cnd_x, cnd_y, img, file_string, scale)
