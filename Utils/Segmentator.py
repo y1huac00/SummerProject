@@ -296,7 +296,7 @@ def straighten(img, rectlist):
         imgheight / 2)  # getRotationMatrix2D needs coordinates in reverse order (width, height) compared to shape
     anglelist = np.array([90 - i[2] if i[2] > 45 else i[2] for i in rectlist])
     angle = 0 - np.average(anglelist)
-    print(anglelist, angle)
+    # print(anglelist, angle)
 
     M = cv2.getRotationMatrix2D(image_center, angle, 1.0)
     rotated_image = cv2.warpAffine(img, M, img.shape[1::-1], flags=cv2.INTER_LINEAR)
@@ -305,7 +305,7 @@ def straighten(img, rectlist):
 
     return rotated_image, angle
 
-def crop(rotated_image, best_rectlist, type):
+def crop(rotated_image, best_rectlist, type, folder, file):
     scale = 10 if type == 'A' else 5
     def sort(a, b):
         if 0.8 * b[0][1] < a[0][1] < 1.2 * b[0][1]:
@@ -324,13 +324,14 @@ def crop(rotated_image, best_rectlist, type):
         cropped = cv2.getRectSubPix(
             rotated_image, (height, width), center)
 
-        fs = f'D:/pythonproject/ostracod/test/testt/{index+1}.tif'
+        os.makedirs(os.path.join(folder, file[:-4]), exist_ok=True)
+        fs = f'{folder}/{file[:-4]}/{file[:-4]}_grid_{index}.tif'
         cv2.imwrite(fs, cropped)
 
 
 
-def solutionB(file, type):  # single file for test
-    img = cv2.imread(file)
+def solutionB(folder, file, type, SINGLE):  # single file for test
+    img = cv2.imread(os.path.join(folder, file))
     cv2.imshow('original image', resize(img, 10 if type == 'A' else 20))
     rang = (13000, 30000) if type == 'A' else (22000, 40000)
 
@@ -342,39 +343,57 @@ def solutionB(file, type):  # single file for test
     best_contours, resized, contour_img, best_rectlist = findbestcontours(img, rang, params, type)
     if best_contours is None:
         print('No 60 detected')
-        return 6
+        return file
     # draw best contours on the resized image
     drawcontour(best_contours, draw_img=resized, contour_img=contour_img, lower=rang[0], upper=rang[1])
 
     rotated_image, angle = straighten(img, best_rectlist)
 
     if abs(angle) < 0.3:
-        crop(img, best_rectlist, type)
+        crop(img, best_rectlist, type, folder, file)
     else:
         best_contours, resized, contour_img, best_rectlist = findbestcontours(rotated_image, rang, params, type)
         if best_contours is None:
             print('No 60 detected')
-            return 6
+            return file
         # draw best contours on the resized image
         drawcontour(best_contours, draw_img=resized, contour_img=contour_img, lower=rang[0], upper=rang[1])
-        crop(rotated_image, best_rectlist, type)
+        crop(rotated_image, best_rectlist, type, folder, file)
 
-    cv2.imshow("Final Image", resized)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    if SINGLE is True:
+        cv2.imshow("Final Image", resized)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+    print(file, type)
+    print('--------------------------------')
+    return None
 
-    # TODO: modify SolutionA to work with straightened image
     # TODO: SolutionB to every file in a given directory
 
 
 if __name__ == '__main__':
     A = False
     if A:  # Solution A: select candidates
-        img_folder = 'E:/HKU_Study/PhD/Lab_work/Keyence_Images'
+        img_folder = 'D:/pythonproject/ostracod/test'
         for file in files(img_folder):
             print(file)
             sep_image(file, img_folder, 160, 16)
     else:  # Solution B: grid contour
-        sampleA = ('D:/pythonproject/ostracod/test/HK14DB1C_136_137_50X.tif', 'A')
-        sampleB = ('D:/pythonproject/ostracod/test/HK14THL1C_136_137_50X.tif', 'B')
-        solutionB(sampleA[0], sampleA[1])
+        # sampleA = ('D:/pythonproject/ostracod/test/A', 'HK14DB1C_136_137_50X.tif', 'A', True)
+        # sampleB = ('D:/pythonproject/ostracod/test/B', 'HK14THL1C_136_137_50X.tif', 'B', True)
+        # solutionB(sampleA[0],sampleA[1],sampleA[2],sampleA[3])
+
+        failedlist = []
+        img_folderA = 'D:/pythonproject/ostracod/test/A'
+        for index, file in enumerate(files(img_folderA)):
+            failed = solutionB(img_folderA, file, 'A', False)  # Add to failedlist if grids != 60
+            if failed is not None:
+                failedlist.append(failed)
+
+        img_folderB = 'D:/pythonproject/ostracod/test/B'
+        for file in files(img_folderB):
+            failed = solutionB(img_folderB, file, 'B', False)
+            if failed is not None:
+                failedlist.append(failed)
+
+        print(f'images failed to produce 60 grids: {failedlist}')
