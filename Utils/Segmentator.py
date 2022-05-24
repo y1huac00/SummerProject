@@ -242,13 +242,13 @@ def drawcontour(contours, draw_img, contour_img, lower, upper):
 
 def evaluate(contourlist, paramslist):
     # print([np.var(np.array(i[1])) for i in contourlist if len(i[1]) == 60])
-    minvar = min([np.var(np.array(i[1])) for i in contourlist if len(i[1]) == 60])
+    minvar = min([np.var(np.array(i[1]) / np.linalg.norm(np.array(i[1]))) for i in contourlist if len(i[1]) == 60])
     # print(minvar)
     c = 0
     for contour in contourlist:
-        if len(contour[1]) == 60 and np.var(np.array(contour[1])) == minvar:  # if grid detected is 60 and smallest var
+        if len(contour[1]) == 60 and np.var(np.array(contour[1]) / np.linalg.norm(np.array(contour[1]))) == minvar:  # if grid detected is 60 and smallest var
             print(
-                f'Best params: blurmedian: {paramslist[c][0]}, threshold: {paramslist[c][1]}, dilate: {paramslist[c][2]}, with variance {minvar}')
+                f'Best params: blurmedian: {paramslist[c][0]}, threshold: {paramslist[c][1]}, dilate: {paramslist[c][2]}, with normalized variance {minvar}')
             return contour[0], c
         c += 1
     return False, c
