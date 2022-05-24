@@ -9,7 +9,8 @@ def rotate_image(mat, angle):
 
     height, width = mat.shape[:2]  # image shape has 3 dimensions
     image_center = (
-    width / 2, height / 2)  # getRotationMatrix2D needs coordinates in reverse order (width, height) compared to shape
+        width / 2,
+        height / 2)  # getRotationMatrix2D needs coordinates in reverse order (width, height) compared to shape
 
     rotation_mat = cv2.getRotationMatrix2D(image_center, angle, 1.)
 
@@ -41,7 +42,7 @@ def resize(img, scale):
 def preprocess(img, type, pblurmedian, pthreshold, pdilate):
     if type == 'A':
         resized = resize(img, 10)
-        resized = rotate_image(resized, 2)
+        # resized = rotate_image(resized, 2)
 
         gray = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
 
@@ -158,7 +159,8 @@ def evaluate(contourlist, paramslist):
     c = 0
     for contour in contourlist:
         if len(contour[1]) == 60 and np.var(np.array(contour[1])) == minvar:  # if grid detected is 60 and smallest var
-            print(f'Best params: blurmedian: {paramslist[c][0]}, threshold: {paramslist[c][1]}, dilate: {paramslist[c][2]}, with variance {minvar}')
+            print(
+                f'Best params: blurmedian: {paramslist[c][0]}, threshold: {paramslist[c][1]}, dilate: {paramslist[c][2]}, with variance {minvar}')
             return contour[0], c
         c += 1
     return False, c
@@ -189,11 +191,15 @@ def findbestcontours(img, rang, params, type):
     return None, None, None
 
 
+def straighten():
+    return 0
+
+
 def solutionB(file, type):  # single file for test
     img = cv2.imread(file)
     rang = (13000, 30000) if type == 'A' else (22000, 40000)
 
-    params = {'A': {'blurmedian': [5, 7, 9], 'threshold': [150, 160, 170, 180], 'dilate': [3, 5, 6, 7, 8]},
+    params = {'A': {'blurmedian': [5, 7, 9], 'threshold': [150, 160, 170, 180], 'dilate': [3, 5, 6, 7, 8, 10]},
               'B': {'blurmedian': [3, 5], 'threshold': [150, 160], 'dilate': [5, 6, 7, 8]}
               }
 
@@ -216,4 +222,4 @@ if __name__ == '__main__':
     sampleA = ('D:/pythonproject/ostracod/test/HK14PCR1C_56_57_50X.tif', 'A')
     sampleB = ('D:/pythonproject/ostracod/test/HK14THL1C_136_137_50X.tif', 'B')
 
-    solutionB(sampleB[0], sampleB[1])
+    solutionB(sampleA[0], sampleA[1])
