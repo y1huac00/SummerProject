@@ -347,6 +347,11 @@ def solutionB(folder, file, type, SINGLE):  # single file for test
     # draw best contours on the resized image
     drawcontour(best_contours, draw_img=resized, contour_img=contour_img, lower=rang[0], upper=rang[1])
 
+    if SINGLE is True:
+        cv2.imshow("Final Image", resized)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
     rotated_image, angle = straighten(img, best_rectlist)
 
     if abs(angle) < 0.3:
@@ -378,21 +383,21 @@ if __name__ == '__main__':
             print(file)
             sep_image(file, img_folder, 160, 16)
     else:  # Solution B: grid contour
-        # sampleA = ('D:/pythonproject/ostracod/test/A', 'HK14DB1C_136_137_50X.tif', 'A', True)  # Single sample test
-        # sampleB = ('D:/pythonproject/ostracod/test/B', 'HK14THL1C_136_137_50X.tif', 'B', True)
-        # solutionB(sampleA[0],sampleA[1],sampleA[2],sampleA[3])
+        sampleA = ('D:/pythonproject/ostracod/test/A', 'HK14DB1C_136_137_50X.tif', 'A', True)  # Single sample test
+        sampleB = ('D:/pythonproject/ostracod/test/B', 'HK14THL1C_136_137_50X.tif', 'B', True)
+        solutionB(sampleA[0],sampleA[1],sampleA[2],sampleA[3])
 
-        failedlist = []
-        img_folderA = 'D:/pythonproject/ostracod/test/A'
-        for index, file in enumerate(files(img_folderA)):
-            failed = solutionB(img_folderA, file, 'A', False)  # Add to failedlist if grids != 60
-            if failed is not None:
-                failedlist.append(failed)
-
-        img_folderB = 'D:/pythonproject/ostracod/test/B'
-        for file in files(img_folderB):
-            failed = solutionB(img_folderB, file, 'B', False)
-            if failed is not None:
-                failedlist.append(failed)
-
-        print(f'images failed to produce 60 grids: {failedlist}')
+        # failedlist = []
+        # img_folderA = 'D:/pythonproject/ostracod/test/A'
+        # for index, file in enumerate(files(img_folderA)):
+        #     failed = solutionB(img_folderA, file, 'A', False)  # Add to failedlist if grids != 60
+        #     if failed is not None:
+        #         failedlist.append(failed)
+        #
+        # img_folderB = 'D:/pythonproject/ostracod/test/B'
+        # for file in files(img_folderB):
+        #     failed = solutionB(img_folderB, file, 'B', False)
+        #     if failed is not None:
+        #         failedlist.append(failed)
+        #
+        # print(f'images failed to produce 60 grids: {failedlist}')
