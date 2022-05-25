@@ -4,6 +4,7 @@ import numpy as np
 from PIL import Image
 import os
 import csv
+import pandas as pd
 
 
 def read_image_size(img):
@@ -119,9 +120,50 @@ def label_species(in_path, out_path, guide_path, treshold=20):
     f_guide.close()
 
 
+
+def image_by_source():
+    '''
+    Generate metadata file organized by the source of the image. YPM images would be stored in YPM.csv
+    NHMUK files would be stored in NHMUK.csv
+    This would help better seprate images from different source to do segmentation
+    :return:
+    '''
+    root = 'Data/'
+    opt = 'Data_organized/'
+
+    for folder_name in os.listdir(root):
+        if not folder_name.startswith('.'):
+            data_folder = os.path.join(os.path.join(root, folder_name), 'data')
+            data_file = os.path.join(data_folder,'data.csv')
+            df = pd.read_csv(data_file)
+            df['scientificName'] = folder_name
+            YPM_ids = df.loc[df['institutionCode'] == 'YPM']
+            NHM_ids = df.loc[df['institutionCode'] != 'YPM']
+
+
+
+            YPM_species = YPM_ids[['file_name','scientificName']]
+            YPM_genus = YPM_ids[['file_name','genus']]
+
+            NHM_species = NHM_ids[['file_name', 'scientificName']]
+            NHM_genus = NHM_ids[['file_name', 'genus']]
+
+            YPM_species.to_csv(opt+'YPM_species_csv', mode='a', header=False, index=False)
+            YPM_genus.to_csv(opt+'YPM_genus_csv', mode='a', header=False, index=False)
+
+            NHM_species.to_csv(opt + 'NHM_species_csv', mode='a', header=False, index=False)
+            NHM_genus.to_csv(opt + 'NHM_genus_csv', mode='a', header=False, index=False)
+
+
+    return 0
+
+
 if __name__ == '__main__':
-    treshold = 20
-    classes = load_csv('input.csv', 'output.csv', './Plaindata')
-    print(classes)
-    label_genus('input.csv', 'genus.csv', 'genus_guide.csv')
-    label_species('input.csv', 'species.csv', 'species_guide.csv')
+    flag = 1
+    if flag ==0:
+        treshold = 20
+        classes = load_csv('input.csv', 'output.csv', './Plaindata')
+        print(classes)
+        label_genus('input.csv', 'genus.csv', 'genus_guide.csv')
+        label_species('input.csv', 'species.csv', 'species_guide.csv')
+    image_by_source()
