@@ -260,6 +260,17 @@ def evaluate(contourlist, paramslist):
         c += 1
     return False, c
 
+def testsinglesetting(img, rang, blurmedian, threshold, dilate, type):
+    resized, preprocessed_img = preprocess(img, type, blurmedian, threshold, dilate)
+    contour_img = cv2.cvtColor(preprocessed_img, cv2.COLOR_GRAY2RGB)
+    contourscandidate, rectlist = findcontours(resized, preprocessed_img, lower=rang[0], upper=rang[1])
+
+    drawcontour(contourscandidate[0], draw_img=resized, contour_img=contour_img, lower=rang[0], upper=rang[1])
+    cv2.imshow("Final Image", resized)
+
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
 
 def findbestcontours(img, rang, params, type):
     best_contours = None
@@ -325,7 +336,7 @@ def crop(rotated_image, best_rectlist, type, folder, file):
             rotated_image, (height, width), center)
 
         os.makedirs(os.path.join(folder, file[:-4]), exist_ok=True)
-        fs = f'{folder}/{file[:-4]}/{file[:-4]}_grid_{index}.tif'
+        fs = f'{folder}/{file[:-4]}/{file[:-4]}_grid_{index+1}.tif'
         cv2.imwrite(fs, cropped)
 
 
@@ -335,8 +346,8 @@ def solutionB(folder, file, type, SINGLE):  # single file for test
     cv2.imshow('original image', resize(img, 10 if type == 'A' else 20))
     rang = (13000, 30000) if type == 'A' else (22000, 40000)
 
-    params = {'A': {'blurmedian': [5, 7, 9], 'threshold': [150, 160, 170, 180], 'dilate': [3, 5, 6, 7, 8, 10]},
-              'B': {'blurmedian': [3, 5], 'threshold': [150, 160], 'dilate': [3, 5, 6, 7, 8]}
+    params = {'A': {'blurmedian': [3, 5, 7, 9], 'threshold': [150, 160, 170, 180, 120, 80], 'dilate': [3, 5, 6, 7, 8, 10]},
+              'B': {'blurmedian': [3, 5, 7], 'threshold': [150, 160, 170, 100, 80], 'dilate': [3, 5, 6, 7, 8, 10]}
               }
 
     # find best contours from different params (Current criteria: grids == 60 and minimum variance of rectangle area)
@@ -383,21 +394,36 @@ if __name__ == '__main__':
             print(file)
             sep_image(file, img_folder, 160, 16)
     else:  # Solution B: grid contour
-        sampleA = ('D:/pythonproject/ostracod/test/A', 'HK14DB1C_136_137_50X.tif', 'A', True)  # Single sample test
-        sampleB = ('D:/pythonproject/ostracod/test/B', 'HK14THL1C_136_137_50X.tif', 'B', True)
-        solutionB(sampleA[0],sampleA[1],sampleA[2],sampleA[3])
+        # sampleA = ('/Users/chenyihua/desktop/pythonprojects/ostracod data/testdata/A', 'HK14DB1C_104_105_50X.tif', 'A', True)  # Single sample test
+        # sampleB = ('/Users/chenyihua/desktop/pythonprojects/ostracod data/testdata/B', 'HK14THL1C_136_137_50X.tif', 'B', True)
+        # solutionB(sampleA[0],sampleA[1],sampleA[2],sampleA[3])
+
+        #
+        img = cv2.imread('/Users/chenyihua/desktop/pythonprojects/ostracod data/testdata/B/HK14THL2C_80_81_50X.tif')
+        testsinglesetting(img, rang=(10000, 40000), blurmedian=3, threshold=80, dilate=6, type='B')
 
         # failedlist = []
-        # img_folderA = 'D:/pythonproject/ostracod/test/A'
+        # img_folderA = '/Users/chenyihua/desktop/pythonprojects/ostracod data/testdata/A'
+        #
         # for index, file in enumerate(files(img_folderA)):
+        #     if file[-4:] != '.tif':
+        #         continue
+        #     if os.path.isdir(os.path.join(img_folderA,file[:-4])):
+        #         continue
         #     failed = solutionB(img_folderA, file, 'A', False)  # Add to failedlist if grids != 60
+        #     print(file)
         #     if failed is not None:
         #         failedlist.append(failed)
         #
-        # img_folderB = 'D:/pythonproject/ostracod/test/B'
+        # img_folderB = '/Users/chenyihua/desktop/pythonprojects/ostracod data/testdata/B'
         # for file in files(img_folderB):
+        #     if file[-4:] != '.tif':
+        #         continue
+        #     if os.path.isdir(os.path.join(img_folderB,file[:-4])):
+        #         continue
         #     failed = solutionB(img_folderB, file, 'B', False)
+        #     print(file)
         #     if failed is not None:
         #         failedlist.append(failed)
         #
-        # print(f'images failed to produce 60 grids: {failedlist}')
+        # print(f'images f ailed to produce 60 grids: {failedlist}')
