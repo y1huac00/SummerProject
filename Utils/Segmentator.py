@@ -260,6 +260,17 @@ def evaluate(contourlist, paramslist):
         c += 1
     return False, c
 
+def testsinglesetting(img, rang, blurmedian, threshold, dilate, type):
+    resized, preprocessed_img = preprocess(img, type, blurmedian, threshold, dilate)
+    contour_img = cv2.cvtColor(preprocessed_img, cv2.COLOR_GRAY2RGB)
+    contourscandidate, rectlist = findcontours(resized, preprocessed_img, lower=rang[0], upper=rang[1])
+
+    drawcontour(contourscandidate[0], draw_img=resized, contour_img=contour_img, lower=rang[0], upper=rang[1])
+    cv2.imshow("Final Image", resized)
+
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
 
 def findbestcontours(img, rang, params, type):
     best_contours = None
@@ -340,8 +351,8 @@ def solutionB(folder, file, SINGLE):  # single file for test
         type = 'B'
     rang = (13000, 30000) if type == 'A' else (22000, 40000)
 
-    params = {'A': {'blurmedian': [3, 5, 7, 9], 'threshold': [80, 120, 150, 160, 170, 180], 'dilate': [3, 5, 6, 7, 8, 10]},
-              'B': {'blurmedian': [3, 5, 7], 'threshold': [80, 100, 150, 160], 'dilate': [3, 5, 6, 7, 8, 10]}
+    params = {'A': {'blurmedian': [3, 5, 7, 9], 'threshold': [150, 160, 170, 180, 120, 80], 'dilate': [3, 5, 6, 7, 8, 10]},
+              'B': {'blurmedian': [3, 5, 7], 'threshold': [150, 160, 170, 100, 80], 'dilate': [3, 5, 6, 7, 8, 10]}
               }
 
     # find best contours from different params (Current criteria: grids == 60 and minimum variance of rectangle area)
@@ -404,7 +415,12 @@ if __name__ == '__main__':
 
         # img_folderB = 'D:/pythonproject/ostracod/test/B'
         # for file in files(img_folderB):
+        #     if file[-4:] != '.tif':
+        #         continue
+        #     if os.path.isdir(os.path.join(img_folderB,file[:-4])):
+        #         continue
         #     failed = solutionB(img_folderB, file, 'B', False)
+        #     print(file)
         #     if failed is not None:
         #         failedlist.append(failed)
         print(f'images failed to produce 60 grids using Solution B: {failedlist}')
