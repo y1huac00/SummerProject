@@ -15,7 +15,7 @@ def preprocess(image, threshold_lower, threshold_upper, horizontal_kernel, horiz
                iteration):
     image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     image = cv2.inRange(image, threshold_lower, threshold_upper)
-    cv2.imshow('threshold', image)
+    #cv2.imshow('threshold', image)
     # image = cv2.medianBlur(image,9)
     # ret, image = cv2.threshold(image, 120, 255, cv2.THRESH_BINARY)
     # cv2.imshow('blur', image)
@@ -33,7 +33,7 @@ def preprocess(image, threshold_lower, threshold_upper, horizontal_kernel, horiz
         image = cv2.erode(image, kernel, iterations=iteration)
         image = cv2.dilate(image, kernel, iterations=iteration)
 
-    cv2.imshow('erode and dilate', image)
+    #cv2.imshow('erode and dilate', image)
 
     return image
 
@@ -61,8 +61,8 @@ def findcontours(original_image, preprocessed, DRAW, typ):
                 cv2.rectangle(original_image, (x - 10, y - 10), (x + w, y + h), (0, 0, 255), 2)
                 bndboxes.append({'xmin': x - 10, 'ymin': y - 10, 'xmax': x + w, 'ymax': y + h})
 
-    cv2.imshow('contour', contoursimg)
-    cv2.imshow('rectangle box', original_image)
+    #cv2.imshow('contour', contoursimg)
+    #cv2.imshow('rectangle box', original_image)
     if DRAW is True:
         return bndboxes
     return contours, len(arealist), len(contours)
@@ -141,7 +141,7 @@ def save2voc(image_folder, file, image, bboxes):
 
 def semantic_segment(image_folder, file, params):
     image = cv2.imread(os.path.join(image_folder, file))
-    cv2.imshow('original_image', image)
+    # cv2.imshow('original_image', image)
     # print(image.shape)
     if image.shape[0] > 1250:
         params['type'] = 'A'
@@ -162,7 +162,7 @@ def semantic_segment(image_folder, file, params):
 
 
 if __name__ == '__main__':
-    all_image_folders = '/Users/chenyihua/desktop/pythonprojects/ostracod data/testdata/B/'
+    all_image_folders = 'E:/HKU_Study/PhD/Lab_work/Keyence_Images'
     # image_folder = '/Users/chenyihua/desktop/pythonprojects/ostracod data/testdata/A/HK14THL1C_64_65_50X/'
     # file = 'HK14THL2C_0_1_50X_grid_2.tif'
     params = {'threshold_lower': [85, 80, 70, 50, 40],
