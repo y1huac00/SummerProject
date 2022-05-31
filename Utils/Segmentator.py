@@ -76,9 +76,9 @@ def sep_image(img_file, img_folder, thr_value=160, scale=32):
     root_folder = os.path.join(img_folder, img_root)
     if not os.path.exists(root_folder):
         os.mkdir(root_folder)
-    # else:
-    #     # already cropped
-    #     return
+    else:
+        # already cropped
+        return
 
     img, scaled = read_and_down(os.path.join(img_folder, img_file), scale)
 
@@ -137,26 +137,26 @@ def preprocess(img, type, pblurmedian, pthreshold, pdilate):
         gray = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
 
         blur = cv2.GaussianBlur(gray, (pblurmedian, pblurmedian), 0)
-        cv2.imshow("blur", blur)
+        #cv2.imshow("blur", blur)
 
         blur = cv2.medianBlur(blur, pblurmedian)
-        cv2.imshow('median', blur)
+        #cv2.imshow('median', blur)
 
         blur = cv2.GaussianBlur(blur, (pblurmedian, pblurmedian), 0)
-        cv2.imshow("blur", blur)
+        #cv2.imshow("blur", blur)
 
         blur = cv2.medianBlur(blur, pblurmedian)
-        cv2.imshow('median', blur)
+        #cv2.imshow('median', blur)
 
         ret, thresh = cv2.threshold(blur, pthreshold, 255, cv2.THRESH_BINARY)
-        cv2.imshow("thresh", thresh)
+        #cv2.imshow("thresh", thresh)
 
         kernel = np.ones((1, pdilate), np.uint8)  # note this is a horizontal kernel
         kernel = np.transpose(kernel)
         thresh = cv2.dilate(thresh, kernel, iterations=1)
         kernel = np.ones((1, pdilate), np.uint8)
         thresh = cv2.dilate(thresh, kernel, iterations=1)
-        cv2.imshow("dilated", thresh)
+        #cv2.imshow("dilated", thresh)
 
         return resized, thresh
 
@@ -167,10 +167,10 @@ def preprocess(img, type, pblurmedian, pthreshold, pdilate):
         gray = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
 
         blur = cv2.GaussianBlur(gray, (pblurmedian, pblurmedian), 0)
-        cv2.imshow("blur", blur)
+        #cv2.imshow("blur", blur)
 
         blur = cv2.medianBlur(blur, pblurmedian)
-        cv2.imshow('median', blur)
+        #cv2.imshow('median', blur)
 
         # blur = cv2.GaussianBlur(blur, (9, 9), 0)
         # cv2.imshow("blur", blur)
@@ -179,7 +179,7 @@ def preprocess(img, type, pblurmedian, pthreshold, pdilate):
         # cv2.imshow('median', blur)
 
         ret, thresh = cv2.threshold(blur, pthreshold, 255, cv2.THRESH_BINARY)
-        cv2.imshow("thresh", thresh)
+        #cv2.imshow("thresh", thresh)
 
         kernel = np.ones((1, pdilate), np.uint8)  # note this is a horizontal kernel
         kernel = np.transpose(kernel)
@@ -187,7 +187,7 @@ def preprocess(img, type, pblurmedian, pthreshold, pdilate):
         kernel = np.ones((1, pdilate), np.uint8)
         thresh = cv2.dilate(thresh, kernel, iterations=1)
         # thresh = cv2.erode(thresh, kernel, iterations=1)
-        cv2.imshow("dilated", thresh)
+        #cv2.imshow("dilated", thresh)
 
         return resized, thresh
 
@@ -241,7 +241,7 @@ def drawcontour(contours, draw_img, contour_img, lower, upper):
                 cv2.drawContours(draw_img, [box], 0, (0, 0, 255), 2)
                 cv2.drawContours(contour_img, contours, c, (0, 0, 255), 2)
         c += 1
-    cv2.imshow("Contour", contour_img)
+    # cv2.imshow("Contour", contour_img)
 
 
 def evaluate(contourlist, paramslist):
@@ -312,7 +312,7 @@ def straighten(img, rectlist):
     M = cv2.getRotationMatrix2D(image_center, angle, 1.0)
     rotated_image = cv2.warpAffine(img, M, img.shape[1::-1], flags=cv2.INTER_LINEAR)
 
-    cv2.imshow('rotated', resize(rotated_image, 10))
+    # cv2.imshow('rotated', resize(rotated_image, 10))
 
     return rotated_image, angle
 
@@ -341,9 +341,14 @@ def crop(rotated_image, best_rectlist, type, folder, file):
 
 
 
-def solutionB(folder, file, type, SINGLE):  # single file for test
+def solutionB(folder, file, SINGLE):  # single file for test
     img = cv2.imread(os.path.join(folder, file))
-    cv2.imshow('original image', resize(img, 10 if type == 'A' else 20))
+    #cv2.imshow('original image', resize(img, 10 if type == 'A' else 20))
+    height, width, _ = img.shape
+    if width >= 19000:
+        type = 'A'
+    else:
+        type = 'B'
     rang = (13000, 30000) if type == 'A' else (22000, 40000)
 
     params = {'A': {'blurmedian': [3, 5, 7, 9], 'threshold': [150, 160, 170, 180, 120, 80], 'dilate': [3, 5, 6, 7, 8, 10]},
@@ -389,33 +394,26 @@ def solutionB(folder, file, type, SINGLE):  # single file for test
 if __name__ == '__main__':
     A = False
     if A:  # Solution A: select candidates
-        img_folder = 'D:/pythonproject/ostracod/test'
+        img_folder = 'E:\HKU_Study\PhD\Lab_work\Keyence_Images'
         for file in files(img_folder):
             print(file)
             sep_image(file, img_folder, 160, 16)
     else:  # Solution B: grid contour
-        # sampleA = ('/Users/chenyihua/desktop/pythonprojects/ostracod data/testdata/A', 'HK14DB1C_104_105_50X.tif', 'A', True)  # Single sample test
-        # sampleB = ('/Users/chenyihua/desktop/pythonprojects/ostracod data/testdata/B', 'HK14THL1C_136_137_50X.tif', 'B', True)
+        # sampleA = ('D:/pythonproject/ostracod/test/A', 'HK14DB1C_136_137_50X.tif', 'A', True)  # Single sample test
+        # sampleB = ('D:/pythonproject/ostracod/test/B', 'HK14THL1C_136_137_50X.tif', 'B', True)
         # solutionB(sampleA[0],sampleA[1],sampleA[2],sampleA[3])
+        text_file = open("tagged_list.txt", "r")
+        tagged = text_file.readlines()
+        tagged = list(map(lambda i: i.rstrip('\n') + '.tif', tagged))
+        failedlist = []
+        img_folderA = 'E:\HKU_Study\PhD\Lab_work\Keyence_Images'
+        for index, file in enumerate(files(img_folderA)):
+            if file not in tagged:
+                failed = solutionB(img_folderA, file, False)  # Add to failedlist if grids != 60
+                if failed is not None:
+                    failedlist.append(failed)
 
-        #
-        img = cv2.imread('/Users/chenyihua/desktop/pythonprojects/ostracod data/testdata/B/HK14THL2C_80_81_50X.tif')
-        testsinglesetting(img, rang=(10000, 40000), blurmedian=3, threshold=80, dilate=6, type='B')
-
-        # failedlist = []
-        # img_folderA = '/Users/chenyihua/desktop/pythonprojects/ostracod data/testdata/A'
-        #
-        # for index, file in enumerate(files(img_folderA)):
-        #     if file[-4:] != '.tif':
-        #         continue
-        #     if os.path.isdir(os.path.join(img_folderA,file[:-4])):
-        #         continue
-        #     failed = solutionB(img_folderA, file, 'A', False)  # Add to failedlist if grids != 60
-        #     print(file)
-        #     if failed is not None:
-        #         failedlist.append(failed)
-        #
-        # img_folderB = '/Users/chenyihua/desktop/pythonprojects/ostracod data/testdata/B'
+        # img_folderB = 'D:/pythonproject/ostracod/test/B'
         # for file in files(img_folderB):
         #     if file[-4:] != '.tif':
         #         continue
@@ -425,5 +423,8 @@ if __name__ == '__main__':
         #     print(file)
         #     if failed is not None:
         #         failedlist.append(failed)
-        #
-        # print(f'images f ailed to produce 60 grids: {failedlist}')
+        print(f'images failed to produce 60 grids using Solution B: {failedlist}')
+
+        for file in failedlist:
+            if file not in tagged:
+                sep_image(file, img_folderA, 160, 16)
