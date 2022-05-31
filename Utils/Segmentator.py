@@ -406,7 +406,7 @@ if __name__ == '__main__':
         tagged = text_file.readlines()
         tagged = list(map(lambda i: i.rstrip('\n') + '.tif', tagged))
         failedlist = []
-        img_folderA = 'E:\HKU_Study\PhD\Lab_work\Keyence_Images'
+        img_folderA = '/mnt/e/HKU_Study/PhD/Lab_work/Keyence_Images'
         for index, file in enumerate(files(img_folderA)):
             if file not in tagged:
                 failed = solutionB(img_folderA, file, False)  # Add to failedlist if grids != 60
