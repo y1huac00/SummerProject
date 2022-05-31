@@ -44,7 +44,7 @@ def findcontours(original_image, preprocessed, DRAW, typ):
     arealist = []
     shap = original_image.shape
     bndboxes = []
-    rang = (10000, 60000) if typ == 'A' else (2000, 15000)
+    rang = (10000, 30000) if typ == 'A' else (2000, 15000)
 
     for c, contour in enumerate(contours):
         area = cv2.contourArea(contour)
@@ -53,11 +53,10 @@ def findcontours(original_image, preprocessed, DRAW, typ):
             if DRAW is True:
                 cv2.drawContours(contoursimg, contours, c, (0, 0, 255), 2)
                 x, y, w, h = cv2.boundingRect(contour)
-                if typ == 'B':
-                    if (x + w > shap[0] * 0.63 and y + h > shap[1] * 0.73) or x + w > shap[0] - shap[
-                        0] * 0.05 or x + w < shap[0] * 0.05 or y + h > shap[1] - shap[1] * 0.05 or y + h < shap[
-                        1] * 0.05:
-                        continue
+                if (x + w > shap[1] * 0.63 and y + h > shap[0] * 0.73) or x + w > shap[0] - shap[
+                    0] * 0.05 or x + w < shap[0] * 0.05 or y + h > shap[1] - shap[1] * 0.05 or y + h < shap[
+                    1] * 0.05:
+                    continue
                 cv2.rectangle(original_image, (x - 10, y - 10), (x + w, y + h), (0, 0, 255), 2)
                 bndboxes.append({'xmin': x - 10, 'ymin': y - 10, 'xmax': x + w, 'ymax': y + h})
 
@@ -109,9 +108,10 @@ def findbestsetting(image, params):
 
 def save2voc(image_folder, file, image, bboxes):
     annotation = ET.Element('annotation')
-    folder = ET.SubElement(annotation, 'folder').text = image_folder
+    folder = ET.SubElement(annotation, 'folder').text = os.path.basename(image_folder)
     filename = ET.SubElement(annotation, 'filename').text = file
-    source = ET.SubElement(annotation, 'path')
+    path = ET.SubElement(annotation, 'path').text = os.path.join(image_folder, file)
+    source = ET.SubElement(annotation, 'source')
     database = ET.SubElement(source, 'database').text = 'Unknown'
     size = ET.SubElement(annotation, 'size')
     width = ET.SubElement(size, 'width').text = f'{image.shape[0]}'
@@ -139,7 +139,7 @@ def save2voc(image_folder, file, image, bboxes):
     return 0
 
 
-def semantic_segment(image_folder, file, params):
+def semantic_segment(image_folder, file, params, DRAW=False):
     image = cv2.imread(os.path.join(image_folder, file))
     # cv2.imshow('original_image', image)
     # print(image.shape)
@@ -155,8 +155,9 @@ def semantic_segment(image_folder, file, params):
 
     save2voc(image_folder, file, image, bndboxes)
 
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
+    if DRAW is True:
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
 
     return 0
 
@@ -165,7 +166,7 @@ if __name__ == '__main__':
     all_image_folders = 'E:/HKU_Study/PhD/Lab_work/Keyence_Images'
     # image_folder = '/Users/chenyihua/desktop/pythonprojects/ostracod data/testdata/A/HK14THL1C_64_65_50X/'
     # file = 'HK14THL2C_0_1_50X_grid_2.tif'
-    params = {'threshold_lower': [85, 80, 70, 50, 40],
+    params = {'threshold_lower': [85, 80, 70, 60],
               'threshold_upper': [245],
               'horizontal_kernel': [True],
               'horizontal_kernel_size': [3, 6],
@@ -173,9 +174,20 @@ if __name__ == '__main__':
               'iteration': [2]
               }
 
-    REPLACE = False  # if replace existing xml files
+    # Single image testing
 
-    directorylist = [i for i in os.listdir(all_image_folders) if os.path.isdir(os.path.join(all_image_folders, i))]
+    # image_folder = '/Users/chenyihua/desktop/pythonprojects/ostracod data/testdata/A/HK14THL1C_80_81_50X/'
+    # file = 'HK14THL1C_80_81_50X_grid_39.tif'
+    # semantic_segment(image_folder, file, params, True)
+
+    # mass production
+
+    all_image_folders = '/Users/chenyihua/ostracoddata/testdata/DB2C'
+    REPLACE = True  # if replace existing xml files
+
+    # directorylist = [i for i in os.listdir(all_image_folders) if os.path.isdir(os.path.join(all_image_folders, i))]
+
+    directorylist = ['HK14DB2C_96_97_50X']
 
     for directory in tqdm.tqdm((directorylist)):
         image_folder = os.path.join(all_image_folders, directory)
@@ -190,4 +202,5 @@ if __name__ == '__main__':
             if num_grid >= 40:
                 continue
             semantic_segment(image_folder, file, params)
+        print(directory)
 
