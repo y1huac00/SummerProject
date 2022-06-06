@@ -342,6 +342,11 @@ def crop(rotated_image, best_rectlist, type, folder, file):
 
 
 def solutionB(folder, file, SINGLE):  # single file for test
+    img_root = ''.join(file.split(".")[:-1])
+
+    root_folder = os.path.join(folder, img_root)
+    if os.path.exists(root_folder):
+        return None
     img = cv2.imread(os.path.join(folder, file))
     #cv2.imshow('original image', resize(img, 10 if type == 'A' else 20))
     height, width, _ = img.shape

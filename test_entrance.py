@@ -42,6 +42,19 @@ def determine_model(arg_model, arg_pretrain, arg_classes):
         model = models.efficientnet_b7(pretrained=arg_pretrain)
         num_ftrs = model.fc.in_features
         model.fc = torch.nn.Linear(num_ftrs, arg_classes)
+    elif arg_model.lower() == 'convnext_tiny':
+        model = models.convnext_tiny(pretrained=arg_pretrain)
+        model.num_classes = arg_classes
+    elif arg_model.lower() == 'convnext_large':
+        model = models.convnext_large(pretrained=arg_pretrain)
+        model.num_classes = arg_classes
+    elif arg_model.lower() == 'regnet_y_16gf':
+        model = models.regnet_y_16gf(pretrained=arg_pretrain)
+        num_ftrs = model.fc.in_features
+        model.fc = torch.nn.Linear(num_ftrs, arg_classes)
+    elif arg_model.lower() == 'vit_b_16':
+        model = models.vit_b_16(pretrained=arg_pretrain)
+        model.num_classes = arg_classes
     else:
         model = models.resnet50(pretrained=arg_pretrain)
         num_ftrs = model.fc.in_features
@@ -52,6 +65,10 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--model_path",
                     type=str,
                     default=MODEL_PATH,
+                    help="Model path for your classification task.")
+parser.add_argument("--model",
+                    type=str,
+                    default='resnet50',
                     help="Model path for your classification task.")
 parser.add_argument("--pretrained",
                     type=bool,
@@ -86,8 +103,9 @@ if args.mode == 'cm':
     plot_prediction(result_dir, args.target, args.show_plot)
 else:
     # for classification using the models
-    model_info = args.model_path.split('_')[-1].split('.')[0].lower()
+    model_info = args.model
     model = determine_model(model_info, args.pretrained, args.classes)
-    target = args.model_path.split('_')[-2]
+    target = args.target
     model_dir = MODEL_BASE+args.model_path
+    print(model_dir)
     test_model(model, model_dir, target, model_info)
