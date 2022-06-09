@@ -1,7 +1,7 @@
 import xml.etree.cElementTree as ET
 import os
 
-base_path = '/Users/chenyihua/ostracoddata/testdata/DB2C'
+base_path = '/Users/chenyihua/ostracoddata/testdata/B'
 all_folders = [i for i in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, i))]
 
 print(all_folders)
