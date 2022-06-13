@@ -182,12 +182,9 @@ if __name__ == '__main__':
 
     # mass production
 
-    all_image_folders = '/Users/chenyihua/ostracoddata/testdata/DB2C'
-    REPLACE = True  # if replace existing xml files
+    REPLACE = False  # if replace existing xml files
 
-    # directorylist = [i for i in os.listdir(all_image_folders) if os.path.isdir(os.path.join(all_image_folders, i))]
-
-    directorylist = ['HK14DB2C_96_97_50X']
+    directorylist = [i for i in os.listdir(all_image_folders) if os.path.isdir(os.path.join(all_image_folders, i))]
 
     for directory in tqdm.tqdm((directorylist)):
         image_folder = os.path.join(all_image_folders, directory)
@@ -198,7 +195,10 @@ if __name__ == '__main__':
                 if os.path.exists(os.path.join(image_folder, file[:-4]+'.xml')):
                     continue
             index = file.find('grid_')
-            num_grid = int(file[index+5:-4])
+            try:
+                num_grid = int(file[index+5:-4])
+            except ValueError:
+                continue
             if num_grid >= 40:
                 continue
             semantic_segment(image_folder, file, params)
