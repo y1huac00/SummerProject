@@ -1,27 +1,11 @@
 import os
-import yaml
-import argparse
+import customizedYaml
+import commonTools
 # import xml.etree.ElementTree as ET
 
 """
 Place this yolobbox.py and yolobbox.yaml into yolov5 directory
 """
-
-def read_yaml(yaml_file):
-    with open(yaml_file, 'r') as stream:
-        try:
-            data = yaml.safe_load(stream)
-            return data
-        except yaml.YAMLError as exc:
-            print(exc)
-            exit(200)
-
-
-def parse_opt():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--yaml', type=str, default='./yolobbox.yaml', help='folder path yaml path')
-    opt = parser.parse_args()
-    return opt
 
 
 def detectsingle(file):
@@ -75,8 +59,10 @@ def detectall(base_path, result_path):
 
 
 def main():
-    opt = parse_opt()
-    data = read_yaml(opt.yaml)
+    opt = commonTools.parse_opt()
+    yaml_data = customizedYaml.yaml_handler(opt.yaml)
+    data = yaml_data.data
+    data['result_path'] = yaml_data.build_new_path('bas_path','Pseudo_annotation/yolo/')
     detectall(data['base_path'], data['result_path'])
     # TODO: convert txt to pascal vox to dst path
 

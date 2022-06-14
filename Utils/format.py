@@ -1,19 +1,8 @@
 import os
 import shutil
-import yaml
-import argparse
+import customizedYaml
 from tqdm import tqdm
-
-
-def read_yaml(yaml_file):
-    with open(yaml_file, 'r') as stream:
-        try:
-            data = yaml.safe_load(stream)
-            return data
-        except yaml.YAMLError as exc:
-            print(exc)
-            exit(200)
-
+import commonTools
 
 def pseudo_annotation(base_path, dst_path):
     """
@@ -86,14 +75,6 @@ def raw_images(base_path, dst_path):
         shutil.copyfile(os.path.join(base_path, image), os.path.join(dst_path, image))
     print('Raw_images done!')
 
-
-def parse_opt():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--yaml', type=str, default='./format.yaml', help='format yaml path')
-    opt = parser.parse_args()
-    return opt
-
-
 def create_folders(dst):
     os.makedirs(os.path.join(dst, 'Pseudo_annotation'), exist_ok=True)
     os.makedirs(os.path.join(dst, 'Species_annotation'), exist_ok=True)
@@ -104,8 +85,8 @@ def create_folders(dst):
 
 
 if __name__ == '__main__':
-    opt = parse_opt()
-    data = read_yaml(opt.yaml)
+    opt = commonTools.parse_opt()
+    data = customizedYaml.yaml_handler(opt.yaml).data
     create_folders(data['dst_path'])
     raw_images(base_path=data['base_path'], dst_path=data['dst_path'])
     pseudo_annotation(base_path=data['base_path'], dst_path=data['dst_path'])

@@ -1,10 +1,11 @@
-
-import sys
-import math
+import argparse
 import cv2
 import numpy as np
 import os
 import functools
+import customizedYaml
+import commonTools
+
 
 
 def read_and_down(file_path, down_factor=32):
@@ -64,13 +65,7 @@ def grid_crop(x_cand, y_cand, trgt, file_string, scale):
         p += 1
 
 
-def files(path):
-    for file in os.listdir(path):
-        if os.path.isfile(os.path.join(path, file)):
-            yield file
-
-
-def sep_image(img_file, img_folder, thr_value=160, scale=32):
+def sep_image(img_file, img_folder,raw_img_folder, thr_value=160, scale=32):
     img_root = ''.join(img_file.split(".")[:-1])
 
     root_folder = os.path.join(img_folder, img_root)
@@ -80,7 +75,7 @@ def sep_image(img_file, img_folder, thr_value=160, scale=32):
         # already cropped
         return
 
-    img, scaled = read_and_down(os.path.join(img_folder, img_file), scale)
+    img, scaled = read_and_down(os.path.join(raw_img_folder, img_file), scale)
 
     thr = cv2.threshold(scaled, thr_value, 255, cv2.THRESH_BINARY_INV)[1]
     h_proj = thr.sum(axis=1)
@@ -341,13 +336,13 @@ def crop(rotated_image, best_rectlist, type, folder, file):
 
 
 
-def solutionB(folder, file, SINGLE):  # single file for test
+def solutionB(folder, file, raw_img_folder,SINGLE):  # single file for test
     img_root = ''.join(file.split(".")[:-1])
 
     root_folder = os.path.join(folder, img_root)
     if os.path.exists(root_folder):
         return None
-    img = cv2.imread(os.path.join(folder, file))
+    img = cv2.imread(os.path.join(raw_img_folder, file))
     #cv2.imshow('original image', resize(img, 10 if type == 'A' else 20))
     height, width, _ = img.shape
     if width >= 19000:
@@ -397,39 +392,24 @@ def solutionB(folder, file, SINGLE):  # single file for test
     # TODO: SolutionA to use solutionB to get straightened image
 
 if __name__ == '__main__':
-    A = False
-    if A:  # Solution A: select candidates
-        img_folder = 'E:\HKU_Study\PhD\Lab_work\Keyence_Images'
-        for file in files(img_folder):
-            print(file)
-            sep_image(file, img_folder, 160, 16)
-    else:  # Solution B: grid contour
-        # sampleA = ('D:/pythonproject/ostracod/test/A', 'HK14DB1C_136_137_50X.tif', 'A', True)  # Single sample test
-        # sampleB = ('D:/pythonproject/ostracod/test/B', 'HK14THL1C_136_137_50X.tif', 'B', True)
-        # solutionB(sampleA[0],sampleA[1],sampleA[2],sampleA[3])
-        text_file = open("tagged_list.txt", "r")
-        tagged = text_file.readlines()
-        tagged = list(map(lambda i: i.rstrip('\n') + '.tif', tagged))
-        failedlist = []
-        img_folderA = '/mnt/e/HKU_Study/PhD/Lab_work/Keyence_Images'
-        for index, file in enumerate(files(img_folderA)):
-            if file not in tagged:
-                failed = solutionB(img_folderA, file, False)  # Add to failedlist if grids != 60
-                if failed is not None:
-                    failedlist.append(failed)
 
-        # img_folderB = 'D:/pythonproject/ostracod/test/B'
-        # for file in files(img_folderB):
-        #     if file[-4:] != '.tif':
-        #         continue
-        #     if os.path.isdir(os.path.join(img_folderB,file[:-4])):
-        #         continue
-        #     failed = solutionB(img_folderB, file, 'B', False)
-        #     print(file)
-        #     if failed is not None:
-        #         failedlist.append(failed)
-        print(f'images failed to produce 60 grids using Solution B: {failedlist}')
+    text_file = open("tagged_list.txt", "r")
+    tagged = text_file.readlines()
+    tagged = list(map(lambda i: i.rstrip('\n') + '.tif', tagged))
+    failedlist = []
+    opt = commonTools.parse_opt()
+    yaml_data = customizedYaml.yaml_handler(opt.yaml)
+    data = yaml_data.data
+    raw_img_folder = os.path.join(data['base_path'],'raw_images')  #'/mnt/e/HKU_Study/PhD/Lab_work/Keyence_Images'
+    img_folder = os.path.join(data['base_path'],'grid_images')
+    for index, file in enumerate(commonTools.files(raw_img_folder)):
+        if file not in tagged:
+            failed = solutionB(img_folder, file,raw_img_folder, False )  # Add to failedlist if grids != 60
+            if failed is not None:
+                failedlist.append(failed)
 
-        for file in failedlist:
-            if file not in tagged:
-                sep_image(file, img_folderA, 160, 16)
+    print(f'images failed to produce 60 grids using Solution B: {failedlist}')
+
+    for file in failedlist:
+        if file not in tagged:
+            sep_image(file, img_folder, raw_img_folder,160, 16)
