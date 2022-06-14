@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 import os
 import functools
-import yaml
+import customizedYaml
 
 
 def parse_opt():
@@ -402,15 +402,6 @@ def solutionB(folder, file, raw_img_folder,SINGLE):  # single file for test
 
     # TODO: SolutionA to use solutionB to get straightened image
 
-def read_yaml(yaml_file):
-    with open(yaml_file, 'r') as stream:
-        try:
-            data = yaml.safe_load(stream)
-            return data
-        except yaml.YAMLError as exc:
-            print(exc)
-            exit(200)
-
 if __name__ == '__main__':
 
     text_file = open("tagged_list.txt", "r")
@@ -418,7 +409,8 @@ if __name__ == '__main__':
     tagged = list(map(lambda i: i.rstrip('\n') + '.tif', tagged))
     failedlist = []
     opt = parse_opt()
-    data = read_yaml(opt.yaml)
+    yaml_data = customizedYaml.yaml_handler(opt.yaml)
+    data = yaml_data.data
     raw_img_folder = os.path.join(data['base_path'],'raw_images')  #'/mnt/e/HKU_Study/PhD/Lab_work/Keyence_Images'
     img_folder = os.path.join(data['base_path'],'grid_images')
     for index, file in enumerate(files(raw_img_folder)):

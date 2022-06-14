@@ -1,19 +1,8 @@
 import os
 import shutil
-import yaml
+import customizedYaml
 import argparse
 from tqdm import tqdm
-
-
-def read_yaml(yaml_file):
-    with open(yaml_file, 'r') as stream:
-        try:
-            data = yaml.safe_load(stream)
-            return data
-        except yaml.YAMLError as exc:
-            print(exc)
-            exit(200)
-
 
 def pseudo_annotation(base_path, dst_path):
     """
@@ -105,7 +94,7 @@ def create_folders(dst):
 
 if __name__ == '__main__':
     opt = parse_opt()
-    data = read_yaml(opt.yaml)
+    data = customizedYaml.yaml_handler(opt.yaml).data
     create_folders(data['dst_path'])
     raw_images(base_path=data['base_path'], dst_path=data['dst_path'])
     pseudo_annotation(base_path=data['base_path'], dst_path=data['dst_path'])
