@@ -1,0 +1,5 @@
+# directory that contains all folders of cropped images
+base_path: /userhome/cs/yihuac/project/base_folder
+
+# save yolo result to the following directory
+result_path: /userhome/cs/yihuac/project/yoloresult

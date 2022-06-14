@@ -1,13 +1,11 @@
-"""
-@file hough_lines.py
-@brief This program demonstrates line finding with the Hough transform
-"""
-import sys
-import math
+import argparse
 import cv2
 import numpy as np
 import os
 import functools
+import customizedYaml
+import commonTools
+
 
 
 def read_and_down(file_path, down_factor=32):
@@ -17,12 +15,14 @@ def read_and_down(file_path, down_factor=32):
     :param down_factor: the scale down factor for original image
     :return: src: original image; dwn: scaled image
     '''
-    src = cv2.imread(file_path, cv2.IMREAD_GRAYSCALE)
+    src = cv2.imread(file_path)
     width = int(src.shape[1] // down_factor)
     height = int(src.shape[0] // down_factor)
     dim = (width, height)
     dwn = cv2.resize(src, dim, interpolation=cv2.INTER_AREA)
-    # dwn = cv2.GaussianBlur(dwn, (3,3), 0)
+    dwn = cv2.cvtColor(dwn, cv2.COLOR_BGR2GRAY)
+    #dwn = cv2.GaussianBlur(dwn, (3,3), 0)
+
     return src, dwn
 
 
@@ -54,7 +54,9 @@ def grid_crop(x_cand, y_cand, trgt, file_string, scale):
     m = len(x_cand)
     n = len(y_cand)
     sub_images = []
-    print(m * n)
+    # error checking
+    print(m*n)
+
     for y in range(0, n - 1, 2):
         for x in range(0, m - 1, 2):
             sub_images.append(trgt[y_cand[y] * scale:y_cand[y + 1] * scale, x_cand[x] * scale:x_cand[x + 1] * scale])
@@ -65,15 +67,17 @@ def grid_crop(x_cand, y_cand, trgt, file_string, scale):
         p += 1
 
 
-def files(path):
-    for file in os.listdir(path):
-        if os.path.isfile(os.path.join(path, file)):
-            yield file
-
-
-def sep_image(img_file, img_folder, thr_value=160, scale=32):
+def sep_image(img_file, img_folder,raw_img_folder, thr_value=160, scale=32):
     img_root = ''.join(img_file.split(".")[:-1])
-    img, scaled = read_and_down(os.path.join(img_folder, img_file), scale)
+
+    root_folder = os.path.join(img_folder, img_root)
+    if not os.path.exists(root_folder):
+        os.mkdir(root_folder)
+    else:
+        # already cropped
+        return
+
+    img, scaled = read_and_down(os.path.join(raw_img_folder, img_file), scale)
 
     thr = cv2.threshold(scaled, thr_value, 255, cv2.THRESH_BINARY_INV)[1]
     h_proj = thr.sum(axis=1)
@@ -81,16 +85,10 @@ def sep_image(img_file, img_folder, thr_value=160, scale=32):
     cnd_x = clean_candidates(axis_candidate(w_proj), w_proj, 1)
     cnd_y = clean_candidates(axis_candidate(h_proj), h_proj, 0)
 
-    root_folder = os.path.join(img_folder, img_root)
-    if not os.path.exists(root_folder):
-        os.mkdir(root_folder)
-    # else:
-    #     # already cropped
-    #     return
-    file_string = os.path.join(root_folder, (img_root + '_grid_'))
+    file_string = os.path.join(root_folder, (img_root+'_grid_'))
+
 
     grid_crop(cnd_x, cnd_y, img, file_string, scale)
-
 
 def rotate_image(mat, angle):
     """
@@ -137,26 +135,26 @@ def preprocess(img, type, pblurmedian, pthreshold, pdilate):
         gray = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
 
         blur = cv2.GaussianBlur(gray, (pblurmedian, pblurmedian), 0)
-        cv2.imshow("blur", blur)
+        #cv2.imshow("blur", blur)
 
         blur = cv2.medianBlur(blur, pblurmedian)
-        cv2.imshow('median', blur)
+        #cv2.imshow('median', blur)
 
         blur = cv2.GaussianBlur(blur, (pblurmedian, pblurmedian), 0)
-        cv2.imshow("blur", blur)
+        #cv2.imshow("blur", blur)
 
         blur = cv2.medianBlur(blur, pblurmedian)
-        cv2.imshow('median', blur)
+        #cv2.imshow('median', blur)
 
         ret, thresh = cv2.threshold(blur, pthreshold, 255, cv2.THRESH_BINARY)
-        cv2.imshow("thresh", thresh)
+        #cv2.imshow("thresh", thresh)
 
         kernel = np.ones((1, pdilate), np.uint8)  # note this is a horizontal kernel
         kernel = np.transpose(kernel)
         thresh = cv2.dilate(thresh, kernel, iterations=1)
         kernel = np.ones((1, pdilate), np.uint8)
         thresh = cv2.dilate(thresh, kernel, iterations=1)
-        cv2.imshow("dilated", thresh)
+        #cv2.imshow("dilated", thresh)
 
         return resized, thresh
 
@@ -167,10 +165,10 @@ def preprocess(img, type, pblurmedian, pthreshold, pdilate):
         gray = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
 
         blur = cv2.GaussianBlur(gray, (pblurmedian, pblurmedian), 0)
-        cv2.imshow("blur", blur)
+        #cv2.imshow("blur", blur)
 
         blur = cv2.medianBlur(blur, pblurmedian)
-        cv2.imshow('median', blur)
+        #cv2.imshow('median', blur)
 
         # blur = cv2.GaussianBlur(blur, (9, 9), 0)
         # cv2.imshow("blur", blur)
@@ -179,7 +177,7 @@ def preprocess(img, type, pblurmedian, pthreshold, pdilate):
         # cv2.imshow('median', blur)
 
         ret, thresh = cv2.threshold(blur, pthreshold, 255, cv2.THRESH_BINARY)
-        cv2.imshow("thresh", thresh)
+        #cv2.imshow("thresh", thresh)
 
         kernel = np.ones((1, pdilate), np.uint8)  # note this is a horizontal kernel
         kernel = np.transpose(kernel)
@@ -187,7 +185,7 @@ def preprocess(img, type, pblurmedian, pthreshold, pdilate):
         kernel = np.ones((1, pdilate), np.uint8)
         thresh = cv2.dilate(thresh, kernel, iterations=1)
         # thresh = cv2.erode(thresh, kernel, iterations=1)
-        cv2.imshow("dilated", thresh)
+        #cv2.imshow("dilated", thresh)
 
         return resized, thresh
 
@@ -241,7 +239,7 @@ def drawcontour(contours, draw_img, contour_img, lower, upper):
                 cv2.drawContours(draw_img, [box], 0, (0, 0, 255), 2)
                 cv2.drawContours(contour_img, contours, c, (0, 0, 255), 2)
         c += 1
-    cv2.imshow("Contour", contour_img)
+    # cv2.imshow("Contour", contour_img)
 
 
 def evaluate(contourlist, paramslist):
@@ -259,6 +257,17 @@ def evaluate(contourlist, paramslist):
             return contour[0], c
         c += 1
     return False, c
+
+def testsinglesetting(img, rang, blurmedian, threshold, dilate, type):
+    resized, preprocessed_img = preprocess(img, type, blurmedian, threshold, dilate)
+    contour_img = cv2.cvtColor(preprocessed_img, cv2.COLOR_GRAY2RGB)
+    contourscandidate, rectlist = findcontours(resized, preprocessed_img, lower=rang[0], upper=rang[1])
+
+    drawcontour(contourscandidate[0], draw_img=resized, contour_img=contour_img, lower=rang[0], upper=rang[1])
+    cv2.imshow("Final Image", resized)
+
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
 
 def findbestcontours(img, rang, params, type):
@@ -301,7 +310,7 @@ def straighten(img, rectlist):
     M = cv2.getRotationMatrix2D(image_center, angle, 1.0)
     rotated_image = cv2.warpAffine(img, M, img.shape[1::-1], flags=cv2.INTER_LINEAR)
 
-    cv2.imshow('rotated', resize(rotated_image, 10))
+    # cv2.imshow('rotated', resize(rotated_image, 10))
 
     return rotated_image, angle
 
@@ -325,18 +334,28 @@ def crop(rotated_image, best_rectlist, type, folder, file):
             rotated_image, (height, width), center)
 
         os.makedirs(os.path.join(folder, file[:-4]), exist_ok=True)
-        fs = f'{folder}/{file[:-4]}/{file[:-4]}_grid_{index}.tif'
+        fs = f'{folder}/{file[:-4]}/{file[:-4]}_grid_{index+1}.tif'
         cv2.imwrite(fs, cropped)
 
 
 
-def solutionB(folder, file, type, SINGLE):  # single file for test
-    img = cv2.imread(os.path.join(folder, file))
-    cv2.imshow('original image', resize(img, 10 if type == 'A' else 20))
+def solutionB(folder, file, raw_img_folder,SINGLE):  # single file for test
+    img_root = ''.join(file.split(".")[:-1])
+
+    root_folder = os.path.join(folder, img_root)
+    if os.path.exists(root_folder):
+        return None
+    img = cv2.imread(os.path.join(raw_img_folder, file))
+    #cv2.imshow('original image', resize(img, 10 if type == 'A' else 20))
+    height, width, _ = img.shape
+    if width >= 19000:
+        type = 'A'
+    else:
+        type = 'B'
     rang = (13000, 30000) if type == 'A' else (22000, 40000)
 
-    params = {'A': {'blurmedian': [5, 7, 9], 'threshold': [150, 160, 170, 180], 'dilate': [3, 5, 6, 7, 8, 10]},
-              'B': {'blurmedian': [3, 5], 'threshold': [150, 160], 'dilate': [3, 5, 6, 7, 8]}
+    params = {'A': {'blurmedian': [3, 5, 7, 9], 'threshold': [150, 160, 170, 180, 120, 80], 'dilate': [3, 5, 6, 7, 8, 10]},
+              'B': {'blurmedian': [3, 5, 7], 'threshold': [150, 160, 170, 100, 80], 'dilate': [3, 5, 6, 7, 8, 10]}
               }
 
     # find best contours from different params (Current criteria: grids == 60 and minimum variance of rectangle area)
@@ -346,6 +365,11 @@ def solutionB(folder, file, type, SINGLE):  # single file for test
         return file
     # draw best contours on the resized image
     drawcontour(best_contours, draw_img=resized, contour_img=contour_img, lower=rang[0], upper=rang[1])
+
+    if SINGLE is True:
+        cv2.imshow("Final Image", resized)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
 
     rotated_image, angle = straighten(img, best_rectlist)
 
@@ -368,32 +392,27 @@ def solutionB(folder, file, type, SINGLE):  # single file for test
     print('--------------------------------')
     return None
 
-    # TODO: SolutionB to every file in a given directory
-
+    # TODO: SolutionA to use solutionB to get straightened image
 
 if __name__ == '__main__':
-    A = False
-    if A:  # Solution A: select candidates
-        img_folder = 'D:/pythonproject/ostracod/test'
-        for file in files(img_folder):
-            print(file)
-            sep_image(file, img_folder, 160, 16)
-    else:  # Solution B: grid contour
-        # sampleA = ('D:/pythonproject/ostracod/test/A', 'HK14DB1C_136_137_50X.tif', 'A', True)
-        # sampleB = ('D:/pythonproject/ostracod/test/B', 'HK14THL1C_136_137_50X.tif', 'B', True)
-        # solutionB(sampleA[0],sampleA[1],sampleA[2],sampleA[3])
 
-        failedlist = []
-        img_folderA = 'D:/pythonproject/ostracod/test/A'
-        for index, file in enumerate(files(img_folderA)):
-            failed = solutionB(img_folderA, file, 'A', False)  # Add to failedlist if grids != 60
+    text_file = open("tagged_list.txt", "r")
+    tagged = text_file.readlines()
+    tagged = list(map(lambda i: i.rstrip('\n') + '.tif', tagged))
+    failedlist = []
+    opt = commonTools.parse_opt()
+    yaml_data = customizedYaml.yaml_handler(opt.yaml)
+    data = yaml_data.data
+    raw_img_folder = os.path.join(data['base_path'],'raw_images')  #'/mnt/e/HKU_Study/PhD/Lab_work/Keyence_Images'
+    img_folder = os.path.join(data['base_path'],'grid_images')
+    for index, file in enumerate(commonTools.files(raw_img_folder)):
+        if file not in tagged:
+            failed = solutionB(img_folder, file,raw_img_folder, False )  # Add to failedlist if grids != 60
             if failed is not None:
                 failedlist.append(failed)
 
-        img_folderB = 'D:/pythonproject/ostracod/test/B'
-        for file in files(img_folderB):
-            failed = solutionB(img_folderB, file, 'B', False)
-            if failed is not None:
-                failedlist.append(failed)
+    print(f'images failed to produce 60 grids using Solution B: {failedlist}')
 
-        print(f'images failed to produce 60 grids: {failedlist}')
+    for file in failedlist:
+        if file not in tagged:
+            sep_image(file, img_folder, raw_img_folder,160, 16)
