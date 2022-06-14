@@ -22,7 +22,6 @@ def read_and_down(file_path, down_factor=32):
     dwn = cv2.resize(src, dim, interpolation=cv2.INTER_AREA)
     dwn = cv2.cvtColor(dwn, cv2.COLOR_BGR2GRAY)
     #dwn = cv2.GaussianBlur(dwn, (3,3), 0)
-
     return src, dwn
 
 
@@ -56,7 +55,6 @@ def grid_crop(x_cand, y_cand, trgt, file_string, scale):
     sub_images = []
     # error checking
     print(m*n)
-
     for y in range(0, n - 1, 2):
         for x in range(0, m - 1, 2):
             sub_images.append(trgt[y_cand[y] * scale:y_cand[y + 1] * scale, x_cand[x] * scale:x_cand[x + 1] * scale])
@@ -86,7 +84,6 @@ def sep_image(img_file, img_folder,raw_img_folder, thr_value=160, scale=32):
     cnd_y = clean_candidates(axis_candidate(h_proj), h_proj, 0)
 
     file_string = os.path.join(root_folder, (img_root+'_grid_'))
-
 
     grid_crop(cnd_x, cnd_y, img, file_string, scale)
 
