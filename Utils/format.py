@@ -4,6 +4,7 @@ import customizedYaml
 from tqdm import tqdm
 import commonTools
 
+
 def pseudo_annotation(base_path, dst_path):
     """
     xml files --> dst_path/Pseudo_annotation
@@ -22,15 +23,16 @@ def pseudo_annotation(base_path, dst_path):
         txt_files = [i for i in os.listdir(os.path.join(base_path, folder)) if i[-4:] == '.txt']
         xmldst = os.path.join(dst_path, 'pascal_voc', folder)
         yolodst = os.path.join(dst_path, 'yolo', folder)
-        os.makedirs(xmldst, exist_ok=True)
-        os.makedirs(yolodst, exist_ok=True)
-        for xml_file in xml_files:
-            # copy each xml file to dst/Pseudo_annotation/pascal_voc
-            shutil.copyfile(os.path.join(base_path, folder, xml_file), os.path.join(xmldst, xml_file))
-
-        for txt_file in txt_files:
-            # copy each txt file to dst/Pseudo_annotation/yolo
-            shutil.copyfile(os.path.join(base_path, folder, txt_file), os.path.join(yolodst, txt_file))
+        if not os.path.exists(xmldst):
+            os.makedirs(xmldst, exist_ok=True)
+            for xml_file in xml_files:
+                # copy each xml file to dst/Pseudo_annotation/pascal_voc
+                shutil.copyfile(os.path.join(base_path, folder, xml_file), os.path.join(xmldst, xml_file))
+        if not os.path.exists(yolodst):
+            os.makedirs(yolodst, exist_ok=True)
+            for txt_file in txt_files:
+                # copy each txt file to dst/Pseudo_annotation/yolo
+                shutil.copyfile(os.path.join(base_path, folder, txt_file), os.path.join(yolodst, txt_file))
 
     print('Pseudo_annotation done!')
 
@@ -74,6 +76,7 @@ def raw_images(base_path, dst_path):
         # copy each raw image to dst/Raw_images
         shutil.copyfile(os.path.join(base_path, image), os.path.join(dst_path, image))
     print('Raw_images done!')
+
 
 def create_folders(dst):
     os.makedirs(os.path.join(dst, 'Pseudo_annotation'), exist_ok=True)
