@@ -1,3 +1,2 @@
-base_path: E:\HKU_Study\PhD\Lab_work\Keyence_Images
-
-dst_path: E:\HKU_Study\PhD\Lab_work\Keyence_Images
+base_path: /mnt/d/Competetion_data/Ostracods_data
+dst_path: D:\Competetion_data\Ostracods_data
