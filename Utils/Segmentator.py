@@ -4,13 +4,8 @@ import numpy as np
 import os
 import functools
 import customizedYaml
+import commonTools
 
-
-def parse_opt():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--yaml', type=str, default='./format.yaml', help='format yaml path')
-    opt = parser.parse_args()
-    return opt
 
 
 def read_and_down(file_path, down_factor=32):
@@ -68,12 +63,6 @@ def grid_crop(x_cand, y_cand, trgt, file_string, scale):
         fs = file_string + str(p) + '.tif'
         cv2.imwrite(fs, img)
         p += 1
-
-
-def files(path):
-    for file in os.listdir(path):
-        if os.path.isfile(os.path.join(path, file)):
-            yield file
 
 
 def sep_image(img_file, img_folder,raw_img_folder, thr_value=160, scale=32):
@@ -408,12 +397,12 @@ if __name__ == '__main__':
     tagged = text_file.readlines()
     tagged = list(map(lambda i: i.rstrip('\n') + '.tif', tagged))
     failedlist = []
-    opt = parse_opt()
+    opt = commonTools.parse_opt()
     yaml_data = customizedYaml.yaml_handler(opt.yaml)
     data = yaml_data.data
     raw_img_folder = os.path.join(data['base_path'],'raw_images')  #'/mnt/e/HKU_Study/PhD/Lab_work/Keyence_Images'
     img_folder = os.path.join(data['base_path'],'grid_images')
-    for index, file in enumerate(files(raw_img_folder)):
+    for index, file in enumerate(commonTools.files(raw_img_folder)):
         if file not in tagged:
             failed = solutionB(img_folder, file,raw_img_folder, False )  # Add to failedlist if grids != 60
             if failed is not None:

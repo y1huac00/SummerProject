@@ -1,18 +1,11 @@
 import os
 import customizedYaml
-import argparse
+import commonTools
 # import xml.etree.ElementTree as ET
 
 """
 Place this yolobbox.py and yolobbox.yaml into yolov5 directory
 """
-
-
-def parse_opt():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--yaml', type=str, default='./yolobbox.yaml', help='folder path yaml path')
-    opt = parser.parse_args()
-    return opt
 
 
 def detectsingle(file):
@@ -66,7 +59,7 @@ def detectall(base_path, result_path):
 
 
 def main():
-    opt = parse_opt()
+    opt = commonTools.parse_opt()
     yaml_data = customizedYaml.yaml_handler(opt.yaml)
     data = yaml_data.data
     data['result_path'] = yaml_data.build_new_path('bas_path','Pseudo_annotation/yolo/')
