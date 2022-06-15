@@ -71,9 +71,9 @@ def sep_image(img_file, img_folder,raw_img_folder, thr_value=160, scale=32):
     root_folder = os.path.join(img_folder, img_root)
     if not os.path.exists(root_folder):
         os.mkdir(root_folder)
-    else:
-        # already cropped
-        return
+    # else:
+    #     # already cropped
+    #     return
 
     img, scaled = read_and_down(os.path.join(raw_img_folder, img_file), scale)
 

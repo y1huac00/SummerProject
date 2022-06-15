@@ -1,2 +1,3 @@
-base_path: E:\project\Keyence_Images
-dst_path: E:\project\data
+base_path: D:\Competetion_data\Ostracods_data
+dst_path: D:\Competetion_data\Ostracods_data
+error_path: D:\Competetion_data\Ostracods_data\error_record.csv

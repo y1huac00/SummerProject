@@ -5,6 +5,7 @@ import regex as re
 def parse_opt():
     parser = argparse.ArgumentParser()
     parser.add_argument('--yaml', type=str, default='./format.yaml', help='format yaml path')
+    parser.add_argument('--mode', type=int, default=1, help='for set the mode of execution')
     opt = parser.parse_args()
     return opt
 
