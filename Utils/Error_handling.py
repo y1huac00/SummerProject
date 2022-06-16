@@ -26,6 +26,8 @@ def build_folder_name(core, slide):
 def move_to_error_bucket(source, dest):
     if not os.path.exists(dest):
         os.mkdir(dest)
+    if not os.path.exists(source):
+        return
     shutil.copy2(source, dest)
 
 def getting_error(error_out_path, grid_path, error_info):
@@ -45,14 +47,17 @@ def getting_error(error_out_path, grid_path, error_info):
         #     magnify = grid_file_path.split('_')[-1]
         #     source_path = grid_file_path
         source_grid = root_name +'_50X'+ '_grid_' + str(grid) + '.tif'
+        source_annoatation = root_name +'_50X'+ '_grid_' + str(grid) + '.xml'
         # $base_dir/errors/HK14TLH1C_0_1_50X
         dest_folder_path = os.path.join(error_out_path, source_folder_name)
         # $base_dir/grid_images/HK14TLH1C_0_1_50X
         source_folder_path = os.path.join(grid_path, source_folder_name)
         # $base_dir / grid_images / HK14TLH1C_0_1_50X / HK14TLH1C_0_1_50X_grid_1.tif
         final_source_path = os.path.join(source_folder_path, source_grid)
+        final_annotation_path = os.path.join(source_folder_path, source_annoatation)
         if os.path.isfile(final_source_path):
             move_to_error_bucket(final_source_path, dest_folder_path)
+            move_to_error_bucket(final_annotation_path, dest_folder_path)
             error_info.loc[idx,'processed'] = 1
     return error_info
 
