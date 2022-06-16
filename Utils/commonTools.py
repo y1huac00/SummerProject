@@ -26,3 +26,8 @@ def conditional_folders(path, condition):
   for file in os.listdir(path):
     if not os.path.isfile(os.path.join(path, file)) and bool(re.search(condition, file)):
       yield file
+
+def conditional_files(path, condition):
+    for file in os.listdir(path):
+        if os.path.isfile(os.path.join(path, file)) and bool(re.search(condition, file)):
+            yield file
