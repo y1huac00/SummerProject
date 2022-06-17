@@ -43,7 +43,7 @@ def clean_candidates(candidates, projections, if_x=1):
         axis_factor = 5
     break_length = projections.size / axis_factor
     for c in range(1, len(candidates)):
-        if candidates[c] - candidates[c - 1] > break_length / 3:
+        if candidates[c] - candidates[c - 1] > break_length / 4:
             axis_breaks.append(candidates[c - 1])
             axis_breaks.append(candidates[c])
     return axis_breaks
@@ -412,4 +412,4 @@ if __name__ == '__main__':
 
     for file in failedlist:
         if file not in tagged:
-            sep_image(file, img_folder, raw_img_folder,160, 16)
+            sep_image(file, img_folder, raw_img_folder,140, 16)
