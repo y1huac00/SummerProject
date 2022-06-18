@@ -24,11 +24,29 @@ def build_folder_name(core, slide):
 
 
 def move_to_error_bucket(source, dest):
+    """
+    Copy the image file under certain folder into a destination
+    source: source path should be the EXACT path of the original file
+    dest: destination file path could be a path, will be created if not exist.
+    """
     if not os.path.exists(dest):
         os.mkdir(dest)
     if not os.path.exists(source):
         return
     shutil.copy2(source, dest)
+
+
+def test_file_existance(source_path, annotation_path,dest_path):
+    candidate_mags = ['40X', '80X', '100X']
+    if os.path.isfile(source_path):
+        return dest_path, annotation_path ,source_path
+    for cand in candidate_mags:
+        new_source = source_path.replace('50X', cand)
+        new_dest = dest_path.replace('50X',cand)
+        new_annotation = annotation_path.replace('50X', cand)
+        if os.path.isfile(new_source):
+            return new_source, new_annotation, new_dest
+    return source_path, annotation_path, dest_path
 
 def getting_error(error_out_path, grid_path, error_info):
     # Possible magnify for files: 50X, 40X, 80X, 100X
@@ -46,8 +64,8 @@ def getting_error(error_out_path, grid_path, error_info):
         #     grid_file_path = os.path.join(grid_path, folder)
         #     magnify = grid_file_path.split('_')[-1]
         #     source_path = grid_file_path
-        source_grid = root_name +'_50X'+ '_grid_' + str(grid) + '.tif'
-        source_annoatation = root_name +'_50X'+ '_grid_' + str(grid) + '.xml'
+        source_grid = root_name + '_50X' + '_grid_' + str(grid) + '.tif'
+        source_annoatation = root_name + '_50X' + '_grid_' + str(grid) + '.xml'
         # $base_dir/errors/HK14TLH1C_0_1_50X
         dest_folder_path = os.path.join(error_out_path, source_folder_name)
         # $base_dir/grid_images/HK14TLH1C_0_1_50X
@@ -55,10 +73,12 @@ def getting_error(error_out_path, grid_path, error_info):
         # $base_dir / grid_images / HK14TLH1C_0_1_50X / HK14TLH1C_0_1_50X_grid_1.tif
         final_source_path = os.path.join(source_folder_path, source_grid)
         final_annotation_path = os.path.join(source_folder_path, source_annoatation)
+        final_source_path, final_annotation_path, dest_folder_path \
+            = test_file_existance(final_source_path, final_annotation_path, dest_folder_path)
         if os.path.isfile(final_source_path):
             move_to_error_bucket(final_source_path, dest_folder_path)
             move_to_error_bucket(final_annotation_path, dest_folder_path)
-            error_info.loc[idx,'processed'] = 1
+            error_info.loc[idx, 'processed'] = 1
     return error_info
 
 
@@ -69,7 +89,7 @@ if __name__ == '__main__':
     params = commonTools.parse_opt()
     yaml_data = customizedYaml.yaml_handler(params.yaml)
     base_path = yaml_data.get_data('base_path')
-    error_path = yaml_data.get_data('error_path')
+    error_path = yaml_data.build_new_path('base_path','error_record.csv')
     grid_path = yaml_data.build_new_path('base_path', 'grid_images')
     error_out_path = yaml_data.build_new_path('base_path', 'errors')
     error_info = pd.read_csv(error_path)
