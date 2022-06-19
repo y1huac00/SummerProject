@@ -45,9 +45,9 @@ if __name__ == '__main__':
     params = commonTools.parse_opt()
     yaml_data = customizedYaml.yaml_handler(params.yaml)
     base_dir = yaml_data.data['base_path']
-    grid_path = 'J:/Keyence_images'#yaml_data.build_new_path('base_path', 'grid_images')
-    image_path = 'J:/Keyence_images'#yaml_data.build_new_path('base_path','raw_images')
-    wrong = '_V2'
-    correct = ''
+    grid_path = yaml_data.build_new_path('base_path', 'grid_images')
+    image_path = yaml_data.build_new_path('base_path','raw_images')
+    wrong = 'FD'
+    correct = 'FD_'
     process_grid_names(grid_path, wrong, correct)
     process_image_names(image_path, wrong, correct)

@@ -61,11 +61,11 @@ def process_grids(matched_grids, grid_path, output_path, image_dir ,annotation_p
             move_to_error_bucket(annotation_source_path, grid_dest_path)
 
     all_images = matched_grids['image_path'].value_counts()
-    for val, cnt in all_images.iteritems():
-        image_source_path = os.path.join(image_dir, val)
-        image_source_path, _, _ = test_file_existance(image_source_path,'',output_path)
-        if os.path.isfile(image_source_path):
-            move_to_error_bucket(image_source_path, output_path)
+    # for val, cnt in all_images.iteritems():
+    #     image_source_path = os.path.join(image_dir, val)
+    #     image_source_path, _, _ = test_file_existance(image_source_path,'',output_path)
+    #     if os.path.isfile(image_source_path):
+    #         move_to_error_bucket(image_source_path, output_path)
 
 if __name__ == '__main__':
     params = commonTools.parse_opt()
