@@ -10,6 +10,12 @@ This script is aiming at tagging the grid files using the cleaned record file.
 Some problems we may face and handle in the program:
     1. Some photos are not taken but being recorded.
     2. Some photos are taken but not being recorded.
+
+Creation process of the files are expected to have following properties:
+    1. Returned file should be undre PASCAL VOC format.
+    2. Count of the actual ostracods vs the recorded amount should be recorded.
+    3. Each grid contains only ONE species. If more than one found, send for error processing.
+    4. Species = genus + ' ' + species
 '''
 
 
@@ -27,6 +33,9 @@ def replace_xml_name(new_name, original_xml):
 
 
 def continue_tagging(record_file, image_dir):
+    """
+    This function is aiming at create the tagging files for the images under PASCAL VOC format.
+    """
     return 0
 
 
