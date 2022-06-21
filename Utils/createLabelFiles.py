@@ -5,6 +5,10 @@ import customizedYaml
 import pandas as pd
 import xml.etree.ElementTree as ET
 from PIL import Image
+import multiprocessing
+from functools import partial
+from contextlib import contextmanager
+import numpy as np
 
 import regex as re
 from pathlib import Path
@@ -142,13 +146,19 @@ def label_annotations(folder, label_record, target, pseudo_dir, out_dir, image_p
     if target_no == 0:
         raise ('Invalid target, should be genus or species')
     pseudo_folder = os.path.join(pseudo_dir, folder)
+    list_60 = list(np.arange(1, 60 + 1))
+    image_path_template = folder+'_grid_'
     for annotations in commonTools.files(pseudo_folder):
         full_info = process_full_info(Path(annotations).stem.split('_'))
         if full_info == 0:
             print(annotations, ' not match the required format')
             continue
+        if full_info['grid_no'] == 0:
+            print('Ignore grid 0')
+            continue
         # Test first. If successful, record the process.
         # A database would be extremely useful
+        list_60.remove(full_info['grid_no'])
         matched_grids = label_record[(label_record[0] == full_info['core']) & (label_record[1] == full_info['slide']) &
                                      (label_record[2] == full_info['grid_no'])]
         out_folder = os.path.join(out_dir, folder)
@@ -167,16 +177,36 @@ def label_annotations(folder, label_record, target, pseudo_dir, out_dir, image_p
         xml_annotation = ET.parse(os.path.join(pseudo_folder, annotations))
         replace_xml_name(annotation_name, xml_annotation)
         xml_annotation.write(os.path.join(out_folder, annotations))
+    if len(list_60) < 60:
+        for left_over in list_60:
+            out_folder = os.path.join(out_dir, folder)
+            image_file = image_path_template+str(left_over)+'.tif'
+            empty_annotation = make_empty_xml(image_path, folder, image_file)
+            if empty_annotation is None:
+                continue
+            xml_file = image_file.replace('.tif', '.xml')
+            empty_annotation.write(os.path.join(out_folder, xml_file))
 
 def replica(obj, rep):
     return [obj] * rep
+
+@contextmanager
+def poolcontext(*args, **kwargs):
+    pool = multiprocessing.Pool(*args, **kwargs)
+    yield pool
+    pool.terminate()
 
 def label_target(pseudo_path, label_record, target, out_dir, image_path):
     # parallel by folders
     # Abandon
     all_folders = []
+
     for folders in commonTools.folders(pseudo_path):
-        label_annotations(folders, label_record, target, pseudo_path, out_dir, image_path)
+        all_folders.append(folders)
+    with poolcontext(processes=14) as pool:
+        pool.map(partial(label_annotations, label_record=label_record, target=target, pseudo_dir=pseudo_path,
+                                   out_dir=out_dir, image_path=image_path), all_folders)
+        #label_annotations(folders, label_record, target, pseudo_path, out_dir, image_path)
 
 
 
