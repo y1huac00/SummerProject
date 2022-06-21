@@ -255,16 +255,16 @@ def evaluate(contourlist, paramslist):
         c += 1
     return False, c
 
-def testsinglesetting(img, rang, blurmedian, threshold, dilate, type):
-    resized, preprocessed_img = preprocess(img, type, blurmedian, threshold, dilate)
-    contour_img = cv2.cvtColor(preprocessed_img, cv2.COLOR_GRAY2RGB)
-    contourscandidate, rectlist = findcontours(resized, preprocessed_img, lower=rang[0], upper=rang[1])
-
-    drawcontour(contourscandidate[0], draw_img=resized, contour_img=contour_img, lower=rang[0], upper=rang[1])
-    cv2.imshow("Final Image", resized)
-
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+# def testsinglesetting(img, rang, blurmedian, threshold, dilate, type):
+#     resized, preprocessed_img = preprocess(img, type, blurmedian, threshold, dilate)
+#     contour_img = cv2.cvtColor(preprocessed_img, cv2.COLOR_GRAY2RGB)
+#     contourscandidate, rectlist = findcontours(resized, preprocessed_img, lower=rang[0], upper=rang[1])
+#
+#     drawcontour(contourscandidate[0], draw_img=resized, contour_img=contour_img, lower=rang[0], upper=rang[1])
+#     cv2.imshow("Final Image", resized)
+#
+#     cv2.waitKey(0)
+#     cv2.destroyAllWindows()
 
 
 def findbestcontours(img, rang, params, type):
