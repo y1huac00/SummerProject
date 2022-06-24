@@ -50,6 +50,8 @@ if __name__ == '__main__':
     yaml_data.data['pseudo_annotation'] = yaml_data.build_new_path('base_path', 'pseudo_annotation')
     annotation_path = yaml_data.build_new_path('pseudo_annotation', 'pascal_voc')
     wrong = 'HK14TLH1C_1_2_50X'
+    # regex expression for the text pattern we want to replace
+    # noted HK14DB1C_88_89(1) in regex should be HK14DB1C_88_89\(1\)
     wrong_re = 'HK14TLH1C_1_2_50X'
     correct = 'HK14TLH1C_0_1_50X'
     process_grid_names(grid_path, wrong, wrong_re,correct)
@@ -60,9 +62,9 @@ if __name__ == '__main__':
     Error fix record:
     THL -> TLH
     129_128 -> 128_129
-    112_113 -> 112_113(1)
-    88_89(1) -> 88_89(2)
-    88_89 -> 88_89(1)
+    HK14DB1C_112_113 -> HK14DB1C_112_113(1)
+    HK14DB1C_88_89(1) -> HK14DB1C_88_89(2)
+    HK14DB1C_88_89 -> HK14DB1C_88_89(1)
     0-1cm -> ''
     V2_ -> ''
     N53 -> NS3
