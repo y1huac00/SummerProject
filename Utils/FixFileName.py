@@ -49,9 +49,9 @@ if __name__ == '__main__':
     image_path = yaml_data.build_new_path('base_path','raw_images')
     yaml_data.data['pseudo_annotation'] = yaml_data.build_new_path('base_path', 'pseudo_annotation')
     annotation_path = yaml_data.build_new_path('pseudo_annotation', 'pascal_voc')
-    wrong = 'THL'
-    wrong_re = 'THL'
-    correct = 'TLH'
+    wrong = 'HK14TLH1C_1_2_50X'
+    wrong_re = 'HK14TLH1C_1_2_50X'
+    correct = 'HK14TLH1C_0_1_50X'
     process_grid_names(grid_path, wrong, wrong_re,correct)
     process_image_names(image_path, wrong, wrong_re,correct)
     process_pseudo_annotations(annotation_path, wrong, wrong_re, correct)
@@ -65,4 +65,6 @@ if __name__ == '__main__':
     88_89 -> 88_89(1)
     0-1cm -> ''
     V2_ -> ''
+    N53 -> NS3
+    HK14TLH1C_1_2_50X -> HK14TLH1C_0_1_50X
     '''

@@ -36,17 +36,18 @@ def move_to_error_bucket(source, dest):
     shutil.copy2(source, dest)
 
 
-def test_file_existance(source_path, annotation_path,dest_path):
+def test_file_existance(source_path, annotation_path, dest_path):
     candidate_mags = ['40X', '80X', '100X']
     if os.path.isfile(source_path):
-        return dest_path, annotation_path ,source_path
+        return dest_path, annotation_path, source_path
     for cand in candidate_mags:
         new_source = source_path.replace('50X', cand)
-        new_dest = dest_path.replace('50X',cand)
+        new_dest = dest_path.replace('50X', cand)
         new_annotation = annotation_path.replace('50X', cand)
         if os.path.isfile(new_source):
             return new_source, new_annotation, new_dest
     return source_path, annotation_path, dest_path
+
 
 def getting_error(error_out_path, grid_path, error_info):
     # Possible magnify for files: 50X, 40X, 80X, 100X
@@ -89,7 +90,7 @@ if __name__ == '__main__':
     params = commonTools.parse_opt()
     yaml_data = customizedYaml.yaml_handler(params.yaml)
     base_path = yaml_data.get_data('base_path')
-    error_path = yaml_data.build_new_path('base_path','error_record.csv')
+    error_path = yaml_data.build_new_path('base_path', 'error_record.csv')
     grid_path = yaml_data.build_new_path('base_path', 'grid_images')
     error_out_path = yaml_data.build_new_path('base_path', 'errors')
     error_info = pd.read_csv(error_path)

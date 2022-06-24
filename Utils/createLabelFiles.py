@@ -26,7 +26,8 @@ Creation process of the files are expected to have following properties:
     4. Species = genus + ' ' + species
 '''
 
-def make_empty_xml(image_dir, sub_folder,image_file):
+
+def make_empty_xml(image_dir, sub_folder, image_file):
     # Core name example: HK14TLH1C_0_1_50X
 
     image_full_folder = os.path.join(image_dir, sub_folder)
@@ -144,10 +145,10 @@ def label_annotations(folder, label_record, target, pseudo_dir, out_dir, image_p
         label_record[10] = 0
     target_no = get_target(target)
     if target_no == 0:
-        raise ('Invalid target, should be genus or species')
+        raise 'Invalid target, should be genus or species'
     pseudo_folder = os.path.join(pseudo_dir, folder)
     list_60 = list(np.arange(1, 60 + 1))
-    image_path_template = folder+'_grid_'
+    image_path_template = folder + '_grid_'
     for annotations in commonTools.files(pseudo_folder):
         full_info = process_full_info(Path(annotations).stem.split('_'))
         if full_info == 0:
@@ -167,7 +168,7 @@ def label_annotations(folder, label_record, target, pseudo_dir, out_dir, image_p
         if len(matched_grids) == 0:
             # create empty annotation
             image_file = annotations.replace('.xml', '.tif')
-            empty_annotation = make_empty_xml(image_path, folder,image_file)
+            empty_annotation = make_empty_xml(image_path, folder, image_file)
             if empty_annotation is None:
                 continue
             empty_annotation.write(os.path.join(out_folder, annotations))
@@ -180,15 +181,17 @@ def label_annotations(folder, label_record, target, pseudo_dir, out_dir, image_p
     if len(list_60) < 60:
         for left_over in list_60:
             out_folder = os.path.join(out_dir, folder)
-            image_file = image_path_template+str(left_over)+'.tif'
+            image_file = image_path_template + str(left_over) + '.tif'
             empty_annotation = make_empty_xml(image_path, folder, image_file)
             if empty_annotation is None:
                 continue
             xml_file = image_file.replace('.tif', '.xml')
             empty_annotation.write(os.path.join(out_folder, xml_file))
 
+
 def replica(obj, rep):
     return [obj] * rep
+
 
 @contextmanager
 def poolcontext(*args, **kwargs):
@@ -196,21 +199,19 @@ def poolcontext(*args, **kwargs):
     yield pool
     pool.terminate()
 
+
 def label_target(pseudo_path, label_record, target, out_dir, image_path):
     # parallel by folders
     # Abandon
     all_folders = []
-
+    # Leave 1 cpu for other task
+    processes = multiprocessing.cpu_count() - 1
     for folders in commonTools.folders(pseudo_path):
         all_folders.append(folders)
-    with poolcontext(processes=14) as pool:
+    with poolcontext(processes=processes) as pool:
         pool.map(partial(label_annotations, label_record=label_record, target=target, pseudo_dir=pseudo_path,
-                                   out_dir=out_dir, image_path=image_path), all_folders)
-        #label_annotations(folders, label_record, target, pseudo_path, out_dir, image_path)
-
-
-
-
+                         out_dir=out_dir, image_path=image_path), all_folders)
+        # label_annotations(folders, label_record, target, pseudo_path, out_dir, image_path)
 
 
 if __name__ == '__main__':
@@ -218,10 +219,10 @@ if __name__ == '__main__':
     yaml_data = customizedYaml.yaml_handler(params.yaml)
     base_dir = yaml_data.data['base_path']
     grid_dir = yaml_data.build_new_path('base_path', 'grid_images')
-    yaml_data.data['genus_annotation'] = yaml_data.build_new_path('base_path', 'genus_annotation')
+    target = 'species'
+    yaml_data.data[target+'_annotation'] = yaml_data.build_new_path('base_path', target+'_annotation')
     yaml_data.data['pseudo_annotation'] = yaml_data.build_new_path('base_path', 'pseudo_annotation')
     pseudo_pascal_dir = yaml_data.build_new_path('pseudo_annotation', 'pascal_voc')
-    genus_pascal_dir = yaml_data.build_new_path('genus_annotation', 'pascal_voc')
-    target = 'genus'
+    target_pascal_dir = yaml_data.build_new_path(target+'_annotation', 'pascal_voc')
     all_data = pd.read_csv(os.path.join(base_dir, 'all_records.csv'), header=None)
-    label_target(pseudo_pascal_dir, all_data, target, genus_pascal_dir, grid_dir)
+    label_target(pseudo_pascal_dir, all_data, target, target_pascal_dir, grid_dir)
